@@ -1,0 +1,106 @@
+\section{Spectra}
+\subsubsection{Correcting to the rest frame}
+\label{sec:spec_restframe}
+Correcting the observed wavelength for the relativistic Doppler effect is done by: 
+\begin{equation}
+    \lambda_{rest \,\, frame} = \frac{\lambda_{observed}}{1+z_{helio}}.
+\end{equation}
+Correcting the observed flux is similar: 
+\begin{equation}
+    f_{rest \,\, frame} = \frac{f_{observed}}{(1+z_{helio})^{2}}.
+\end{equation}
+
+Why? Because redshift affects wavelength, it also affects frequency, i.e., photon energy. You get a two-fold effect here---one factor of $(1+ z)$ is from the wavelength increasing, and the other is from the intensity decreasing. 
+
+\subsubsection{Normalizing to a particular $z$}
+\subsection{Absorption lines}
+\subsection{Ejecta velocity}
+\subsection{Synthetic photometry overview}
+
+If you're here, you're wondering how to make photometry from some spectra. In short, this is obtained by integrating under the spectrum in the region covered by a given filter. 
+
+The area under the spectrum, $F$, in a given filter $X$, is calculated by
+\begin{equation}
+    F_{X} = \int_{\lambda_{1}}^{\lambda_{2}} f(\lambda) R_{X}(\lambda) d\lambda,
+\label{eqn:synthint}
+\end{equation}
+
+%%%PUT IN A PLOT OF WHAT RESPONSE FUNCTIONS LOOK LIKE, OVERLAYED ON A SPECTRUM
+
+where $f(\lambda)$ is your spectrum, and $R_{X}(\lambda)$ is your filter. However, we can't often use the continuous version of this function with our data. So, we discretize it:
+
+\begin{equation}
+    F_{X} = \sum_{i=\lambda_{1}}^{\lambda_{2}} f(\lambda_{i}) R_{X}(\lambda_{i})(\lambda_{i} - \lambda_{i-1}),
+\label{eqn:synth_discrete}
+\end{equation}
+
+where $f(\lambda_{i})$ is the energy flux at a particular wavelength $\lambda_{i}$, and $R_{X}(\lambda_{i})$ is the response function for the filter at wavelength $\lambda_{i}$. We're using a discretized version of an integral, so $(\lambda_{i} - \lambda_{i-1})$ is the same as $d\lambda$. From now on, this chapter will be written as if we are using Equation \ref{eqn:synth_discrete}.
+
+Then, the variance of $F$ is:
+\begin{equation}
+    \sigma_{F}^{2} = \sum_{i=\lambda_{1}}^{\lambda_{2}} \sigma_{f(\lambda_{i})}^{2} R_{X}(\lambda_{i})^{2}(\lambda_{i} - \lambda_{i-1})^{2}
+\end{equation}
+
+Individual magnitudes are calculated by
+\begin{equation}
+    m = -2.5\log_{10}\Big(\frac{F}{F_{ref}}\Big) + m_{ref}.
+\end{equation}
+\textit{Wait---what are $F_{ref}$ and $m_{ref}$}? Good question. Because magnitudes are inherently relative quantities, we need to use some reference object to convert flux into magnitudes. You can get reference objects from \href{https://www.stsci.edu/hst/instrumentation/reference-data-for-calibration-and-tools/astronomical-catalogs/calspec}{CALSPEC}. Photometric systems are, unfortunately, out of the scope of this manual at this time. Let's say we're using the Vega system, with the star Vega (Alpha Lyrae) from now on. 
+
+This means we need to use Equation \ref{eqn:synth_discrete} on our reference object, Vega to calculate $F_{ref}$. You'll use the \textit{same} response function as you use for your supernova spectrum. This means that $m_{ref}$ is the... reference magnitude? What does THAT mean? If magnitudes are inherently relative quantities, do we then compare our reference object to something \textit{else}? A valid concern, but no! This is called a \textit{zero point}. For the Vega system, astronomers have defined the magnitude of the star Vega such that the $m_{Vega}$ = 0 in all bands. So, if you're using the Vega system, $m_{ref}$ is probably just 0 (unless some literature tells you otherwise, which is possible, so make sure you're familiar with the photometric system and filters you're using).
+
+So anyway, the variance of $m$ is:
+\begin{equation}
+    \sigma_{m}^{2} = \frac{\partial m}{\partial f}^{2} \sigma_{f}^{2} = \frac{\partial m}{\partial F}^{2} \Big( \sum_{i=\lambda_{1}}^{\lambda_{2}} \frac{\partial F}{\partial f(\lambda_{i})} \sigma_{f(\lambda_{i})}\Big)^{2} = \Big( \frac{-2.5}{F\ln10} \Big)^{2} \sum_{i=\lambda_{1}}^{\lambda_{2}}\sigma_{f(\lambda_{i})}^{2} R_{X}(\lambda_{i})^{2}(\lambda_{i}-\lambda_{i-1})^{2}
+    \label{eqn:m_err}
+\end{equation}
+
+If you're looking for \textit{colors}, I've got your back there, too. For arbitrary color $X-Y$,
+\begin{equation}
+    m_{X} - m_{Y} = -2.5\log \Big( \frac{F_{X}}{F_{ref,X}} \Big) + m_{ref,X} + 2.5\log \Big( \frac{F_{Y}}{F_{ref,Y}} \Big) - m_{ref,Y}
+\end{equation}.
+We can propagate the error here, too. If you want, you can assume $X$ and $Y$ are independent, and do $\sigma_{X-Y} = \sqrt{\sigma_{X}^{2} + \sigma_{Y}^{2}}$. However, we can be more rigorous and not assume independence. We're going to use $\sigma^{2} = \mathbf{JCJ^{T}}$---the explanation of this formula is beyond the scope of this manual. $\mathbf{J}$ is the Jacobian of your spectrum (remember, your spectrum is a function!), and $\mathbf{C}$ is its covariance matrix. The following method will work \textit{if you have an error for the flux in your data spectrum}:
+
+For ease of calculations, we will treat $m_{X}-m_{Y}$ as a function of $f(\lambda_{i})$ (our supernova spectrum, in discrete wavelength chunks). Then, for arbitrary color $X-Y$, the Jacobian is:
+\begin{equation}
+\label{eqn:jac2}
+\mathbf{J}_{X-Y} = 
+\begin{bmatrix}
+    
+        \frac{\partial m_{X-Y}}{\partial f(\lambda_{0})} & \frac{\partial m_{X-Y}}{\partial f (\lambda_{1})} & \dots & \frac{\partial m_{X-Y}}{\partial f(\lambda_{N})} \\
+    
+\end{bmatrix}
+\end{equation}
+
+\parindent = 0 mm
+
+where $N$ is the last measured wavelength in the spectrum. The $i$th entry is: 
+\begin{equation}
+    \frac{\partial m_{X-Y}}{\partial f(\lambda_{i})} = -\frac{1.09}{F_{X}} R_{X}(\lambda_{i})(\lambda_{i}-\lambda_{i-1}) + \frac{1.09}{F_{Y}}R_{Y}(\lambda_{i})(\lambda_{i}-\lambda_{i-1})
+\end{equation}
+
+Then, the covariance matrix is diagonal, and each entry is the spectrum error provided in the data:
+\begin{equation}\mathbf{C_{X-Y}} = 
+    \begin{bmatrix}
+        \sigma_{f(\lambda_{0})}^{2} &  & & \\
+         & \sigma_{f(\lambda_{1})}^{2}&  & \\
+         &  & \ddots &  \\
+        & & & & \sigma_{f(\lambda_{N})}^{2}\\
+    \end{bmatrix}.
+    \label{eqn:cov}
+\end{equation}
+Now, we use $\sigma^{2} = \mathbf{JCJ^{T}}$, and boom, we have color error without assuming independence for the filters. 
+
+\subsection{Things to watch out for}
+\subsubsection{Response function units}
+Your response function will likely be normalized, but may be given in either normalized flux units or normalized photon counts. You need to know which units you have. If you need the other, don't fret---you can convert it to the other unit system. Let's say you have a response function in normalized photon units, but want it in normalized ergs. 
+\begin{equation}
+    R_{X, ergs}(\lambda) = h c R_{X, \gamma}(\lambda),
+\end{equation}
+where $h \approx 6.626 \times 10^{-27}$ is Planck's constant in ergs $\cdot$ s and $c = 3 \times 10^{10}$ is the speed of light in cm/s. Then, normalize:
+\begin{equation}
+    R_{X, ergs, normalized}(\lambda) = \frac{R_{X, ergs}(\lambda)}{\max{(R_{X, ergs}(\lambda))}}
+\end{equation}
+Now, $R_{X, ergs, normalized}(\lambda)$ is a function with range 0 to 1, and you can plug it into Equation \ref{eqn:synth_discrete}.
+
+\subsection{Step-by-step Explain Like I'm 5}

@@ -1,0 +1,48 @@
+%% Overleaf			
+%% Software Manual and Technical Document Template	
+%% 									
+%% This provides an example of a software manual created in Overleaf.
+
+\documentclass{ol-softwaremanual}
+
+% Packages used in this example
+\usepackage{graphicx}  % for including images
+\usepackage{microtype} % for typographical enhancements
+\usepackage{minted}    % for code listings
+\usepackage{amsmath}   % for equations and mathematics
+\setminted{style=friendly,fontsize=\small}
+\renewcommand{\listoflistingscaption}{List of Code Listings}
+\usepackage{hyperref}  % for hyperlinks
+\usepackage[a4paper,top=4.2cm,bottom=4.2cm,left=3.5cm,right=3.5cm]{geometry} % for setting page size and margins
+
+% Custom macros used in this example document
+\newcommand{\doclink}[2]{\href{#1}{#2}\footnote{\url{#1}}}
+\newcommand{\cs}[1]{\texttt{\textbackslash #1}}
+
+% Frontmatter data; appears on title page
+\title{Supernova Bootcamp}
+\version{0.0.0}
+\author{Lauren Aldoroty}
+%\softwarelogo{\includegraphics[width=8cm]{logo}}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+% \listoflistings
+\newpage
+
+\section{Introduction}
+
+Compiling all the things I've learned so it's easier for future folks. This manual will attempt to cover more technical, data-analysis driven perspectives on working with SNe, particularly SNe Ia. In the Software section (Section~\ref{sec:software}), at the end of each subsection, I'll list some lesser-known functions and tricks that I've found useful. These will be indicated by section titles \texttt{in font like this}, e.g., \texttt{helio\_to\_cmb()} (Section~\ref{sec:heliotocmb}).
+
+\input{reddening.tex}
+\input{hubble.tex}
+\input{photometry.tex}
+\input{spectra.tex}
+\input{software.tex}
+\input{statistics.tex}
+\input{references.tex}
+
+\end{document}
