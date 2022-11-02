@@ -1,7 +1,113 @@
+\newcommand{\cov}{\mathrm{cov}}
+
 \section{Statistics Stuff}
 I guess you could argue this is outside the scope of a supernova manual, but these are things I use all the time. Plus, it's my darn manual, so I get to put what I want in here.
 
+\subsection{Weighted expectation value, variance, and covariance}
+\textbf{Expectation value}, unweighted by data error:
+\begin{equation}
+\label{eqn:expval}
+    E[X] = \sum_{i} x_{i}p_{i},
+\end{equation}
+where $x_{i}$ is your data and $p_{i}$ is the probability of that value. Now, if you want to use your data's error instead of the probability (which is hard/weird to quantify):
+\begin{equation}
+\label{eqn:weightedexpval}
+    E_{w}[X] = \frac{\sum_{i}x_{i}/(\sigma_{x_{i}}^{2})}{\sum_{i} (1/\sigma_{x_{i}}^{2})},
+\end{equation}
+where $\sigma_{x_{i}}$ is the error for data point $x_{i}$.
+
+Great, then what's the \textbf{variance of a weighted expectation value} (mean)? 
+
+Unweighted, variance is defined as:
+\begin{equation}
+    \mathrm{Var}[X] = E[(X-\mu)^{2}] = \sum_{i} p_{i}(x_{i}-\mu)^{2},
+\end{equation}
+where $\mu$ is the mean of the data and $p$ is the probability of that $x_{i}$ occurring. So, we calculate the weighed variance with this formula, but using the weighted mean (a.k.a. expectation value) from Equation \ref{eqn:weightedexpval}, and change $p_{i}$ to $w_{i} = 1/\sigma_{i}^{2}$:
+
+\begin{equation}
+\label{eqn:weightedvariance}
+    \mathrm{Var}_{w}[X] = E_{w}[(X - \mu_{w})^{2}] = \frac{1}{\sum_{i} \sigma_{x_{i}}^{2}} \sum_{i}\frac{1}{\sigma_{x_{i}}^{2}} (x_{i} - E_{w}[X])^{2})
+\end{equation}
+
+Now, on to \textbf{weighted covariance}. Covariance is defined as 
+
+\begin{equation}
+    \mathrm{cov}(X,Y) = E[(X-E[X])(Y-E[Y])]
+\end{equation}
+
+So, our weighted covariance is going to be this formula, but using weighted variance and expectation values:
+
+\begin{equation}
+    \mathrm{cov}_{w}(X,Y) = E[(X-E_{w}[X])(Y-E_{w}[Y])]
+\end{equation}
+
+The tricky part here is how we handle the errors. Using the error propagation formula (Equation \ref{eqn:errorprop}) on $(X-E[X])(Y-E[Y])$ and then taking the reciprocal of this, we can weight by 
+
+\begin{equation}
+    w_{i} = \frac{1}{(y_{i}-E_{w}[Y])^{2}\sigma_{x_{i}}^{2} + (x_{i}-E_{w}[X])^{2}\sigma_{y_{i}}^{2}}
+\end{equation}
+Thus, weighted covariance is
+\begin{equation}
+    \mathrm{cov}_{w} = \frac{1}{\sum_{i}w_{i}}\sum_{i}w_{i}(x_{i}-E_{w}[X])(y_{i}-E_{w}[Y])
+\end{equation}
+
+\subsection{Weighted Pearson correlation coefficient}
+The Pearson correlation coefficient measures how linearly correlated two datasets are. It ranges from $[-1,1]$, where -1 is perfectly negatively linearly correlated, 1 is perfectly positively linearly correlated, and 0 is no correlation. Your correlation coefficient, weighted or unweighted, is:
+\begin{equation}
+\label{eqn:corrcoeff}
+    \rho_{X,Y} = \frac{\cov(X,Y)}{\sigma_{X}\sigma_{Y}},
+\end{equation}
+where $\cov(X,Y)$ is the covariance between datasets $X$ and $Y$, and $\sigma$ is the error for a dataset. In order to make this weighted, you calculate the weighted covariance for the numerator, and use weighted variances for the denominator. In terms of things we've discussed earlier in this chapter:
+
+\begin{equation}
+    \rho_{X,Y,w} = \frac{\mathrm{cov}_{w}(X,Y)}{\sqrt{\mathrm{Var}_{w}(X)\mathrm{Var}_{w}(Y)}}
+\end{equation}
+
+That's great and all, but what about the significance of this? What's the $p$-value? We can calculate this with a two-sided $t$-test, where the test statistic is
+\begin{equation}
+    t = \frac{\rho_{X,Y}\sqrt{N-2}}{\sqrt{1-\rho_{X,Y}^{2}}}.
+\end{equation}
+$\rho_{X,Y}$ is your Pearson correlation coefficient (weighted or unweighted), $N$ is the number of data points, and 2 represents the free parameters in the fit (i.e., $N-2$ is the degrees of freedom in the fit). To get the $p$-value, you have three options: 1. Do a painful integral 2. Use a table 3. Use \texttt{scipy.special.stdtr} in Python, which does the painful integral for you. I will not be discussing options 1 and 2, because they stink. Option 3 is best. Use \texttt{stdtr()} like this: \texttt{2*stdtr(dof,-|t|)}, where \texttt{dof} is your degrees of freedom, ($N-2$), and \texttt{t} is the test statistic. You slap the absolute value signs on and multiply the final $p$-value by 2 because you're integrating between two values in the $t$ distribution.
+
 \subsection{Error Propagation}
+\label{sec:errorprop}
+In order to propagate error, you need to know the functions that describe your model, because you're going to have to take derivatives. The simplest way to propagate error for a function with $n$ variables is: $f(x_{0},x_{1}, ...,  x_{n})$ is:
+\begin{equation}
+\label{eqn:errorprop}
+    \sigma_{f} = \sqrt{\sum_{i=0}^{n}\Big( \frac{\partial f}{\partial x_{i}} \sigma_{x_{i}}\Big)^{2}},
+\end{equation}
+where $\sigma_{x_{i}}$ is the error for variable $x_{i}$. Note that this formula \textit{assumes the variables are all independent}. 
+
 \subsection{Least Squares and Minimizing $\chi^{2}$}
+In general, when minimizing $\chi^{2}$ to fit a model, 
+
+\begin{equation}
+    \chi^{2} = \sum_{i=0}^{k} \Big( \frac{X_{i} - \mu_{i}}{\sigma_{i}} \Big)^{2}
+\end{equation}
+where $X_{i}$ is the data, $\mu_{i}$ is the model, and $\sigma_{i}$ is the error for the data. $k$ is the number of data points. \\
+
+Now, use Python to minimize this function. You can use any minimization algorithm you want. Personally, I like least squares. You can use \href{https://github.com/cosmonaut/pycmpfit}{\texttt{pycmpfit}} or \href{https://github.com/segasai/astrolibpy/blob/master/mpfit/mpfit.py}{\texttt{mpfit}}. Both will work, but \href{https://github.com/cosmonaut/pycmpfit}{\texttt{pycmpfit}} is installable via pip. If you want to use \href{https://github.com/segasai/astrolibpy/blob/master/mpfit/mpfit.py}{\texttt{mpfit}}, you can do something like I did \href{https://github.com/laldoroty/LaurensTools/tree/main/LaurensTools/mpfit}{here} (and you can \texttt{git clone} and then \texttt{pip install -e .} the entire \href{https://github.com/laldoroty/LaurensTools}{\texttt{LaurensTools}} package, if you want).
+
 \subsubsection{Example: Fitting a line}
+
+We have a model that we want to fit to our data,
+\begin{equation}
+    y(x) = mx + b,
+\end{equation}
+where $m$ is the slope and $b$ is the $y-$intercept. These are our parameters to be fit to our data. We want to find out what values of $m$ and $b$ fit the data best. So, our $\chi^{2}$ \textit{without} considering data error is:
+\begin{equation}
+    \chi^{2} = \sum_{i=0}^{k} (X_{i} - y(x_{i}))^{2},
+\end{equation}
+where $X_{i}$ is the $i$th data point, corresponding to independent variable $x_{i}$, and $y(x_{i})$ is the model at point $x_{i}$. Expanded, we have:
+
+\begin{equation}
+    \chi^{2} = \sum_{i=0}^{k} (X_{i} - (mx_{i} + b))^{2},
+\end{equation}
+
 \subsubsection{Example: Fitting a Hubble diagram}
+
+Let's say we want to use the following model for predicting distance using SNe Ia \cite{tripp1998}:
+
+\begin{equation}
+    \mu = m_{B} - M - \alpha(C - C_{avg})- \delta(\Delta m_{15} - \Delta m_{15, avg})
+\end{equation}

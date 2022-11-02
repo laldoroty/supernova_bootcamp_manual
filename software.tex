@@ -1,102 +1,129 @@
-\section{Software}
+\section{Software and Models}
 \label{sec:software}
 \subsection{SALT}
-\textcolor{red}{ADD SALT CITATIONS. ALL PAPERS. ALL OF THEM. AND WRITE WHAT THEY ARE}
-\subsection{sncosmo}
+\subsubsection{What is SALT?}
 
+
+\subsubsection{Models}
+\textit{SALT: a spectral adaptive light curve template for type Ia supernovae}, J. Guy et al. 2005 \cite{salt}. This is the first SALT model. The model is trained on 34 SNe with $z < 0.1$ in $UBVRI$ filters. \\
+
+\textit{SALT2: using distant supernovae to improve the use of type Ia supernovae as distance indicators}, J. Guy et al. 2007 \cite{salt2}. SALT is retrained on data with $z \leq 1$. \\
+
+\textit{Improved cosmological constraints from a joint analysis of the SDSS-II and SNLS supernova samples}, M. Betoule et al. 2014 \cite{salt2.4}. SALT2 is retrained on the data from \cite{salt2}, with the addition of SDSS-II data, for $z < 0.25$. SALT2.4 is born. \\
+
+\textit{SALT3: An Improved Type Ia Supernova Model for Measuring Cosmic Distances}, W. D. Kenworthy et al. 2021 \cite{salt3}. SALT2.4 gets a facelift and becomes more open-sourcey. \\
+
+\textit{SALT3-NIR: Taking the Open-source Type Ia Supernova Model to Longer Wavelengths for Next-generation Cosmological Measurements}, J. D. R. Pierel et al. 2022 \cite{salt3nir}. SALT3 gets upgraded to include NIR wavelengths. 
+
+\subsubsection{How do I use SALT models?}
+
+\subsection{sncosmo}
 \href{https://github.com/sncosmo/sncosmo}{sncosmo} has a whole bunch of contributors. It's a Python package, useful for middle steps of supernova cosmology (e.g., fitting models). 
+
+\subsubsection{Fitting a light curve}
 
 \subsubsection{\texttt{helio\_to\_cmb()}}
 \label{sec:heliotocmb}
-The below code is handy for converting your heliocentric redshift to CMB redshift. Honestly, I can't find its location in the sncosmo github right now, so I've copied and pasted it below: \textcolor{red}{RUN THIS TO CHECK IT}
-\begin{verbatim}
+The below code is handy for converting your heliocentric redshift to CMB redshift. Honestly, I can't find its location in the sncosmo github right now, so I've copied and pasted it below: 
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+    
     import math
+    import numpy as np
     from astropy.coordinates import SkyCoord
     
     # From sncosmo:
-def radec_to_xyz(ra, dec):
-    # SUPERNOVA BOOTCAMP MANUAL AUTHOR ADDITION: 
-        Modified to add the try/except statement
-    try:
-        x = math.cos(np.deg2rad(dec)) 
-            * math.cos(np.deg2rad(ra))
-        y = math.cos(np.deg2rad(dec)) 
-            * math.sin(np.deg2rad(ra))
-        z = math.sin(np.deg2rad(dec))
-    except:
-        coord = SkyCoord('%s %s' % (ra, dec), unit=(u.hourangle,u.deg))
-        x = math.cos(np.deg2rad(coord.dec.degree)) 
-            * math.cos(np.deg2rad(coord.ra.degree))
-        y = math.cos(np.deg2rad(coord.dec.degree)) 
-            * math.sin(np.deg2rad(coord.ra.degree))
-        z = math.sin(np.deg2rad(coord.dec.degree))
+    def radec_to_xyz(ra, dec):
+        # SUPERNOVA BOOTCAMP MANUAL AUTHOR ADDITION: 
+        # Modified to add the try/except statement
+        try:
+            x = math.cos(np.deg2rad(dec)) 
+                * math.cos(np.deg2rad(ra))
+            y = math.cos(np.deg2rad(dec)) 
+                * math.sin(np.deg2rad(ra))
+            z = math.sin(np.deg2rad(dec))
+        except:
+            coord = SkyCoord('%s %s' % (ra, dec), 
+                unit=(u.hourangle,u.deg))
+            x = math.cos(np.deg2rad(coord.dec.degree)) 
+                * math.cos(np.deg2rad(coord.ra.degree))
+            y = math.cos(np.deg2rad(coord.dec.degree)) 
+                * math.sin(np.deg2rad(coord.ra.degree))
+            z = math.sin(np.deg2rad(coord.dec.degree))
+    
+        return np.array([x, y, z], dtype=np.float64)
+    
+    def cmb_dz(ra, dec):
+        # See http://arxiv.org/pdf/astro-ph/9609034
+        CMBcoordsRA = 167.98750000 # J2000 
+        CMBcoordsDEC = -7.22000000
+    
+        # J2000 coords from NED\n",
+        CMB_DZ = 371000. / 299792458.
+        CMB_RA = 168.01190437
+        CMB_DEC = -6.98296811
+        CMB_XYZ = radec_to_xyz(CMB_RA, CMB_DEC)
+        coords_xyz = radec_to_xyz(ra, dec)
+        dz = CMB_DZ * np.dot(CMB_XYZ, coords_xyz)
+    
+        return dz
 
-    return np.array([x, y, z], dtype=np.float64)
-
-def cmb_dz(ra, dec):
-    # See http://arxiv.org/pdf/astro-ph/9609034
-    CMBcoordsRA = 167.98750000 # J2000 
-    CMBcoordsDEC = -7.22000000
-
-    # J2000 coords from NED\n",
-    CMB_DZ = 371000. / 299792458.
-    CMB_RA = 168.01190437
-    CMB_DEC = -6.98296811
-    CMB_XYZ = radec_to_xyz(CMB_RA, CMB_DEC)
-    coords_xyz = radec_to_xyz(ra, dec)
-    dz = CMB_DZ * np.dot(CMB_XYZ, coords_xyz)
-
-    return dz
-
-def helio_to_cmb(z, ra, dec):
-    # Convert from heliocentric redshift to CMB-frame redshift.
-    "    Parameters\n",
-    "    ----------\n",
-    "    z : float\n",
-    "        Heliocentric redshift.\n",
-    "    ra, dec: float\n",
-    "        RA and Declination in degrees (J2000).\n",
-    "    \"\"\"\n",
-
-    dz = -cmb_dz(ra, dec)
-    one_plus_z_pec = math.sqrt((1. + dz) / (1. - dz))
-    one_plus_z_CMB = (1. + z) / one_plus_z_pec
-
-    return one_plus_z_CMB - 1.
-\end{verbatim}
+    def helio_to_cmb(z, ra, dec):
+        # Convert from heliocentric redshift to CMB-frame redshift.
+        "    Parameters\n",
+        "    ----------\n",
+        "    z : float\n",
+        "        Heliocentric redshift.\n",
+        "    ra, dec: float\n",
+        "        RA and Declination in degrees (J2000).\n",
+        "    \"\"\"\n",
+    
+        dz = -cmb_dz(ra, dec)
+        one_plus_z_pec = math.sqrt((1. + dz) / (1. - dz))
+        one_plus_z_CMB = (1. + z) / one_plus_z_pec
+    
+        return one_plus_z_CMB - 1.
+\end{minted}
 
 \subsection{SNooPy}
 
 \subsubsection{What does it do?}
-\href{https://github.com/obscode/snpy}{SNooPy}, written in Python by Chris Burns for the Carnegie Supernova Project, has a lot of handy functions. \textcolor{red}{CITE}. 
-
-Below, I'll list some of my favorite functions that are not-so-discussed in the \href{https://csp.obs.carnegiescience.edu/data/snpy/documentation}{documentation}. 
+\href{https://github.com/obscode/snpy}{SNooPy} \cite{snoopy1,snoopy2}, written in Python by Chris Burns for the Carnegie Supernova Project, has a lot of handy functions. Below, I'll list some of my favorite functions that are not-so-discussed in the \href{https://csp.obs.carnegiescience.edu/data/snpy/documentation}{documentation}. 
 
 \subsubsection{\texttt{get\_dust\_RADEC()} and \texttt{get\_dust\_sigma\_RADEC()}}
 
 \par
-\texttt{get\_dust\_RADEC()} and \texttt{get\_dust\_sigma\_RADEC()} query \href{https://irsa.ipac.caltech.edu/frontpage/}{IRSA} using a given RA and dec to get the Milky Way $E(B-V)$ and error in $E(B-V)$, respectively. These are located in \texttt{snpy.utils.IRSA\_dust\_getval}. They accept arguments for RA and dec, with the default dust map set as \textcolor{red}{SF11 citation}. They return two things: the result and a flag. The flag indicates that the function worked. You can throw this out. 
-
-\par
+\texttt{get\_dust\_RADEC()} and \texttt{get\_dust\_sigma\_RADEC()} query \href{https://irsa.ipac.caltech.edu/frontpage/}{IRSA} using a given RA and dec to get the Milky Way $E(B-V)$ and error in $E(B-V)$, respectively. These are located in \texttt{snpy.utils.IRSA\_dust\_getval}. They accept arguments for RA and dec, with the default dust map from \cite{sf11dust}. They return two things: the result and a flag. The flag indicates that the function worked. You can throw this out. \\
 
 \noindent\textbf{Usage example:}
-\textcolor{red}{CHECK THIS IS CORRECT, RUN IT:}
-\begin{verbatim}
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
     from snpy.utils.IRSA_dust_getval import get_dust_RADEC, 
         get_dust_sigma_RADEC
 
     '''
     SN 1987A coordinates from 
     http://simbad.u-strasbg.fr/simbad/sim-id?Ident=SN+1987A.
+    Note: At the time of writing this, the get_dust_RADEC()
+    function works, but get_dust_sigma_RADEC() is failing.
+    Otherwise, this code works as-is.
     '''
 
     ra, dec = 279.703427, -31.937066
     mwreddening,_ = get_dust_RADEC(ra, dec, calibration='SF11')
-    e_mwreddening,_ = get_dust_sigma_RADEC(ra, dec, calibration='SF11')
+    e_mwreddening,_ = get_dust_sigma_RADEC(ra, dec, 
+        calibration='SF11')
     mwreddening = mwreddening[0]
     e_mwreddening = e_mwreddening[0]
 
     print(f'The Milky Way reddening for SN 1987A is {mwreddening}
         +/- {e_mwreddening}.')
 
-\end{verbatim}
+\end{minted}
