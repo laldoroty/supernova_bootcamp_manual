@@ -16,11 +16,100 @@
 \textit{SALT3-NIR: Taking the Open-source Type Ia Supernova Model to Longer Wavelengths for Next-generation Cosmological Measurements}, J. D. R. Pierel et al. 2022 \cite{salt3nir}. SALT3 gets upgraded to include NIR wavelengths. 
 
 \subsubsection{How do I use SALT models?}
+SALT3 is in several places. You can use these models through:
+\begin{itemize}
+    \item \href{https://sncosmo.readthedocs.io/en/stable/}{\texttt{sncosmo}} (You can use \texttt{SNANA} models in \texttt{sncosmo}, as well.)
+    \item \href{https://github.com/RickKessler/SNANA}{\texttt{SNANA}} (SALT2 only)
+\end{itemize}
+
+I haven't used \texttt{SNANA}, so I can't help you with that. However, Section \ref{sec:sncosmo} contains tips on using \texttt{sncosmo}. 
 
 \subsection{sncosmo}
-\href{https://github.com/sncosmo/sncosmo}{sncosmo} has a whole bunch of contributors. It's a Python package, useful for middle steps of supernova cosmology (e.g., fitting models). 
+\label{sec:sncosmo}
+\href{https://github.com/sncosmo/sncosmo}{\texttt{sncosmo}} is pretty cool. It has a whole bunch of contributors. It's a Python package, useful for middle steps of supernova cosmology (e.g., fitting models). You can fit a \href{https://sncosmo.readthedocs.io/en/stable/source-list.html}{lot of stuff} with it, actually. \texttt{sncosmo} provides fit parameters for your data. You can use either spectroscopic or photometric data.
 
-\subsubsection{Fitting a light curve}
+\subsubsection{Fitting a light curve with photometry}
+You \textit{must} input flux units into \texttt{sncosmo} in order for it to work. Trust me, I've tried using it with magnitudes because I was in denial that I would have to do a unit conversion (boo hoo). These should be \textit{physical flux of your object, not flux of an object in a particular magnitude system} (see \ref{sec:magtoflux}).\\
+
+First, your data needs to be in an \texttt{astropy} table with columns\\
+\texttt{[`date',`flux',`fluxerr',`band',`zp',`zpsys']}. 
+
+\subsubsection{Converting SALT parameter output to magnitude error along your entire light curve}
+
+\texttt{sncosmo} contains a function for converting your model fit to a light curve with covariance: \texttt{Model.bandfluxcov()}. You'd use it like this:
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+
+    import sncosmo 
+    import numpy as np
+    from astropy import Table
+    import pandas as pd
+
+    # Read in your data:
+    csv = pd.read_csv('SN2014J.csv')
+    # Define band and magnitude system:
+    band = 'B'
+    phase = np.arange(-10,30,0.1)
+    vega = sncosmo.get_magsystem('vega')
+
+    # Turn your pandas table into an astropy table
+    # so sncosmo can use it, and fit the model. 
+    data = Table.from_pandas(csv)
+    model = sncosmo.Model(source='salt3')
+    result, fitted_model = sncosmo.fit_lc(data, model, 
+        ['t0', 'x0', 'x1', 'c'])
+
+    flux_lc, cov = fitted_model.bandfluxcov(band, phase)      
+
+\end{minted}
+
+where \texttt{flux\_lc} is an array of the flux through your \texttt{band} at all phases in \texttt{phase}. Because I did \textit{not} provide the zero point or zero point system as an argument (\texttt{`zp'} and \texttt{`zpsys'}, respectively), this is the physical flux of the object through the bandpass, \texttt{band} in photons/s/cm$^{2}$. \texttt{cov} is an $n \times n$ symmetric matrix, where $n$ is the length of your \texttt{phase} array. Its entries contain the covariance between band fluxes at different phases. \\
+
+However, \textit{you need to provide \texttt{zp} and \texttt{zpsys} to \texttt{Model.bandfluxcov()} if you are converting to magnitudes, because magnitudes are a relative unit system}. You could also use the ``hidden'' function \texttt{Model.\_bandflux\_rcov()} to calculate the covariances. This calculates the \textit{relative} covariance---i.e., covariances that are \textit{fractions} of the flux. So, if you do this, you need to remember to multiply your covariance matrix by the flux. You can take the diagonal entries of the covariance matrix output from \texttt{Model.\_bandflux\_rcov()}, invoking the assumption that all phases are independent measurements, and convert these to magnitudes using Equation \ref{eqn:errorprop} (or, to skip doing derivatives yourself, Equation \ref{eqn:flux-to-mag-err}). Like so: \\
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+
+    import sncosmo 
+    import numpy as np
+    from astropy import Table
+    import pandas as pd
+
+    # Read in your data:
+    csv = pd.read_csv('SN2014J.csv')
+    # Define band and magnitude system:
+    band = 'B'
+    phase = np.arange(-10,30,0.1)
+    vega = sncosmo.get_magsystem('vega')
+    # See the section on zeropoint trouble
+    # in sncosmo for an explanation of this line:
+    zeropoint = csv['mag'] + 
+    2.5*np.log10*(vega.band_mag_to_flux(csv['mag'], band)
+
+    # Turn your pandas table into an astropy table
+    # so sncosmo can use it, and fit the model. 
+    data = Table.from_pandas(csv)
+    model = sncosmo.Model(source='salt3')
+    result, fitted_model = sncosmo.fit_lc(data, model, 
+        ['t0', 'x0', 'x1', 'c'])
+
+    flux_lc, cov = fitted_model.bandfluxcov(band, phase, 
+        zp=zeropoint, zpsys=vega) 
+
+    flux_err = np.sqrt(cov.diagonal()) # Multiply flux_err by flux_lc
+                                       # if you use _bandflux_rcov().
+    mag_err = np.sqrt(((2.5/np.log(10))**2)*(1/(flux_lc**2)) 
+        *flux_err**2) 
+    
+
+\end{minted}
 
 \subsubsection{\texttt{helio\_to\_cmb()}}
 \label{sec:heliotocmb}
@@ -89,10 +178,58 @@ The below code is handy for converting your heliocentric redshift to CMB redshif
         return one_plus_z_CMB - 1.
 \end{minted}
 
-\subsection{SNooPy}
+\subsubsection{Help! I'm having zero point trouble.}
+\label{sec:zeropointsncosmo}
+First, make sure you're inputting \textit{physical flux units}, not the flux of your object in a magnitude system. If you converted from magnitudes to flux, this is likely to be the issue (see section \ref{sec:magtoflux}). So, what you need to do is take your reference spectrum back out of your magnitude.\\
 
-\subsubsection{What does it do?}
-\href{https://github.com/obscode/snpy}{SNooPy} \cite{snoopy1,snoopy2}, written in Python by Chris Burns for the Carnegie Supernova Project, has a lot of handy functions. Below, I'll list some of my favorite functions that are not-so-discussed in the \href{https://csp.obs.carnegiescience.edu/data/snpy/documentation}{documentation}. 
+Now, if you've done this, you can't forget to also convert your magnitude errors back to flux errors. It's the same equation as the error equation in \ref{sec:magtoflux}. No funny business with the conversion back to physical units because that's just a constant offset, so the derivative from Equation \ref{eqn:errorprop} takes it out. \\
+
+Here's some Python code to help you out with this fix: 
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+    
+    import sncosmo 
+    import numpy as np
+    from astropy import Table
+    import pandas as pd
+
+    # Read in your data:
+    csv = pd.read_csv('SN2014J.csv')
+    # Define band and magnitude system:
+    band = 'B'
+    vega = sncosmo.get_magsystem('vega')
+
+    # This is the line where you calculate the offset to 
+    # remove the Vega spectrum:
+    zeropoint = data['mag'] + 
+        2.5*np.log10*(vega.band_mag_to_flux(data['mag'], band)
+
+    # Throw that offset into your table:
+    data['zp'] = pd.Series([zeropoint 
+        for x in range(len(data.index))])
+
+    # Calculate your flux error (absolute value because it's
+    # squared and then square-rooted):
+    data['fluxerr'] = abs((data['magerr']*np.log(10)/2.5)*
+        (vega.band_mag_to_flux(data['mag'], band))
+
+    # Turn your pandas table into an astropy table
+    # so sncosmo can use it, and fit the model. 
+    data = Table.from_pandas(csv)
+    model = sncosmo.Model(source='salt3')
+    result, fitted_model = sncosmo.fit_lc(data, model, 
+        ['t0', 'x0', 'x1', 'c'])
+    
+\end{minted}
+
+\subsection{SNooPy}
+\href{https://csp.obs.carnegiescience.edu/data/snpy}{SNooPy} \cite{snoopy1,snoopy2}, written in Python by Chris Burns for the Carnegie Supernova Project, has a lot of handy functions. Broadly, it is a Python package that fits light curves, but it's broken up into a lot of separate functions, which can be very useful. You can run SALT2 and MLCS2k2 models via SNooPy, as well. 
+
+
+Below, I'll list some of my favorite functions that are not-so-discussed in the \href{https://csp.obs.carnegiescience.edu/data/snpy/documentation}{documentation}. 
 
 \subsubsection{\texttt{get\_dust\_RADEC()} and \texttt{get\_dust\_sigma\_RADEC()}}
 
@@ -126,4 +263,85 @@ The below code is handy for converting your heliocentric redshift to CMB redshif
     print(f'The Milky Way reddening for SN 1987A is {mwreddening}
         +/- {e_mwreddening}.')
 
+\end{minted}
+
+\subsection{mpfit}
+\label{sec:mpfit}
+\texttt{mpfit} is a very flexible Levenberg-Marquardt $\chi^{2}$ minimization code. It can take error in both the $x$ and $y$ axes into account. It's useful to be familiar with! The Python code is located \href{https://github.com/segasai/astrolibpy/blob/master/mpfit/mpfit.py}{here}. What I think you should do with this is download this *.py file, and make it so it's importable. Then, write some functions that make it easier to use:
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+    import os, sys
+    import numpy as np
+
+    # The next two lines assume that you are making this file
+    # in the same directory as the ``mpfit'' directory. i.e.,
+    # /home/this_file.py
+    # and
+    # /home/mpfit/mpfit/mpfit.py
+    dirname = os.path.dirname(os.path.abspath(__file__))
+    sys.path.append(os.path.join(dirname,'mpfit'))
+    
+    from mpfit import mpfit
+    
+    def Flin(x,p):
+        """
+        Set up linear function for mpfit to use. 
+        You can use any kind of function you want, though.
+        The line is just an example.
+        DO NOT call this.
+        """
+        y =  p[0] + p[1]*x 
+        return y
+    
+    def myfunctlin(p, fjac=None, x=None, y=None, xerr=None, 
+        yerr=None):
+        """
+        Set up chisq to minimize for mpfit. This will accept any
+        combination of xerr and yerr (i.e., you do not need either, 
+        or both).
+        DO NOT call this. 
+        """
+        # Parameter values are passed in "p".
+        # If fjac==None then partial derivatives should not be
+        # computed.  It will always be None if MPFIT is called 
+        # with the default flag.
+        model = Flin(x, p)
+        # Positive status value means MPFIT should continue, 
+        # negative means stop the calculation.
+        status = 0
+
+        # If you don't use the line function, you need 
+        # to change this and write your own chi^2 here.
+        if xerr is not None and yerr is not None:
+            return [status, np.sqrt((y-model)**2/(yerr**2 + 
+                (p[1]**2)*xerr**2))]
+        elif xerr is None and yerr is not None:
+            return [status, np.sqrt((y-model)**2/(yerr**2))]
+        elif xerr is not None and yerr is not None:
+            return [status, np.sqrt((y-model)**2/((p[1]**2)*xerr**2))]
+        elif xerr is None and yerr is None:
+            return [status, y-model]
+    
+    def linfit(x,y,ex=None, ey=None, initial_guess=[0,1]):
+        """
+        Do the linear fit. USE THIS FUNCTION DIRECTLY IN YOUR CODE. 
+        i.e., you'd write something like:
+        from this_file import linfit
+        """
+        # p0 are the initial conditions
+        p0=np.array(initial_guess,dtype='float64') 
+        if ex is not None and ey is not None:
+            fa = {'x':x, 'y':y, 'xerr': ex, 'yerr': ey}
+        elif ex is None and ey is not None:
+            fa = {'x':x, 'y':y, 'yerr': ey}
+        elif ex is not None and ey is None:
+            fa = {'x':x, 'y':y, 'xerr': ex}
+        elif ex is None and ey is None:
+            fa = {'x':x, 'y':y}
+        m = mpfit(myfunctlin, p0, functkw=fa)
+        return m.params, m.covar
 \end{minted}

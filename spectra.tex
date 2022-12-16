@@ -13,15 +13,19 @@ Correcting the observed flux is similar:
 Why? Because redshift affects wavelength, it also affects frequency, i.e., photon energy. You get a two-fold effect here---one factor of $(1 + z)$ is from the wavelength increasing, and the other is from the intensity decreasing. 
 
 \subsection{Normalizing to a particular $z$}
-Sometimes, you want your spectrum flux as if it were at some redshift $z_{ref}$ that you've chosen. First thing's first, you need the luminosity distance to your object.
+Sometimes, you want your spectrum flux as if it were at some redshift $z_{ref}$ that you've chosen. Do not use the rest frame spectrum for this calculation. First thing's first, you need the luminosity distance to your object.
 
 \begin{equation}
     D_{L} = (1+z_{helio})D_{M},
 \end{equation}
 where $z_{helio}$ is the actual redshift for your object, and $D_{M}$ is the comoving transverse distance. In Python, you can use \texttt{astropy.cosmology}'s function \texttt{comoving\_transverse\_distance}, which takes $z_{CMB}$ as its input (so you'll also need your object's RA and dec), to calculate $D_{M}$. If we assume an FLRW universe, then our cosmological scale factor is $a(t) = 1/(1+z)$. Then,
-
 \begin{equation}
-    \frac{a(t_{ref})}{a(t_{actual})} = \Big( \frac{1 + z_{helio}}{1+z_{ref}} \Big) \Big( \frac{D_{L}}{D_{L}} \Big)^{2}
+    \frac{a(t_{ref})}{a(t_{actual})} = \Big( \frac{1 + z_{helio}}{1+z_{ref}} \Big) \Big( \frac{D_{L, actual}}{D_{L, ref}} \Big)^{2}
+\end{equation}
+
+Finally, convert your flux by using this value:
+\begin{equation}
+    F_{ref} = F_{actual}\Big( \frac{1 + z_{helio}}{1+z_{ref}} \Big) \Big( \frac{D_{L, actual}}{D_{L, ref}} \Big)^{2} = F_{actual} \Big(\frac{a(t_{ref})}{a(t_{actual})} \Big)
 \end{equation}
 
 \subsection{Absorption lines}
@@ -59,7 +63,7 @@ Now... we weren't going to have this entire discussion without talking about err
 \subsubsection{Ejecta velocity}
 \label{sec:ejectavelocity}
 
-\subsection{Synthetic photometry overview}
+\subsection{Synthetic photometry}
 
 If you're here, you're wondering how to make photometry from some spectra. In short, this is obtained by integrating under the spectrum in the region covered by a given filter. 
 

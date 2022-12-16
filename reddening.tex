@@ -2,6 +2,37 @@
 
 Reddening and extinction are \textit{nearly} the same thing, but not quite. They're both caused by light scattering off dust, but \textit{extinction} describes the dimming that results, and \textit{reddening} describes the preferential scattering of blue light (i.e., more shorter wavelength light gets scattered away from us than longer wavelengths, so we see objects as redder than they actually are.) This is important because it's a pretty large source of systematic uncertainty in supernova studies! Dust doesn't emit light, it just takes it away, so we can't ``see'' it directly. \textit{HOW} are we supposed to correct for an effect we know so little about? 
 
-\subsection{Supernova Intrinsic Color}
+\subsection{Background}
+Extinction, in general, is described by the equation:
+\begin{equation}
+    A_{V} = -2.5\log \frac{F_{V}}{F_{V,0}},
+\end{equation}
+
+where the subscript $V$ indicates the $V$-band photometric bandpass, $F_{V}$ is observed flux in the $V$-band, and $F_{V, 0}$ is the intrinsic flux in the $V$-band.
+
+Reddening is described by:
+\begin{equation}
+    E(B-V) = (B-V)_{observed} - (B-V)_{intrinsic},
+\end{equation}
+
+where $(B-V)_{observed}$ is the observed $B-V$ photometric color, and $(B-V)_{intrinsic}$ is the intrinsic photometric color. Note that because magnitudes are logarithmic, this equation is a ratio, too! We can link extinction and reddening with an equation, as well:
+\begin{equation}
+    E(B-V) = A_{B} - A_{V},
+\end{equation}
+
+where $A_{B}$ is photometric extinction in the $B$-band and $A_{V}$ is photometric extinction in the $V$-band. We can also link them like this:
+\begin{equation}
+    A_{V} = R_{V}E(B-V),
+\end{equation}
+
+where $R_{V}$ is a constant called the ``total-to-selective extinction ratio''. Basically, it's a constant that tells you how much light you lose in a particular photometric band. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.99\textwidth]{figs/fitzpatrick1999.png}
+    \caption{$R_{X}$ ($X$ for an arbitrary filter) for Johnson photometric filters (transmission functions shown scaled arbitrarily for reference). Solid points are data, the solid line is a cubic spline interpolation (\textit{not} a fit). Note that extinction has a more significant effect at shorter wavelengths. Figure from \cite{Fitzpatrick1999}.}
+    \label{fig:phot_reddening}
+\end{figure}
 
 \subsection{Correcting for Dust}
+\subsubsection{Lira Law}

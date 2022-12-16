@@ -1,1 +1,32 @@
 \section{Photometry}
+Caveat about this section: I have only ever used the Vega magnitude system. There will be no discussion of AB magnitudes. 
+
+\subsection{Converting from flux to magnitude}
+Here, we just use the definition of magnitudes:
+
+\begin{equation}
+    m = -2.5\log_{10} \Big( \frac{F_{obs}}{F_{ref}} \Big),
+\end{equation}
+
+where $F_{obs}$ is your observed flux and $F_{ref}$ is your reference flux in the \textit{same} photometric band. You need to make sure your units are consistent between $F_{obs}$ and $F_{ref}$. \textit{You need to understand your magnitude system before doing this.} I repeat, \textit{YOU NEED TO UNDERSTAND YOUR MAGNITUDE SYSTEM BEFORE DOING ANYTHING!} Know your units. Know your initial units, know your end units. Know the units of your reference, know the units of your data. 
+
+Using equation \ref{eqn:errorprop}, we can also convert flux error to magnitude error:
+\begin{equation}
+    \label{eqn:flux-to-mag-err}
+    \sigma_{m} = \sqrt{\Big( \frac{2.5}{\ln10} \Big)^{2} \Big( \frac{\sigma_{F_{obs}}}{F_{obs}}\Big)^{2}}
+\end{equation}
+
+\subsection{Converting from magnitude to flux}
+\label{sec:magtoflux}
+Rearrange the definition of magnitudes:
+\begin{equation}
+    F_{obs} = F_{ref}10^{\frac{-m}{2.5}}
+\end{equation}
+
+Then, if you want to convert the magnitude error to flux error, use equation \ref{eqn:errorprop} on this equation, and get: 
+
+\begin{equation}
+    \sigma_{F_{obs}} = \sqrt{\Big( \sigma_{m} \frac{F_{ref}\ln(10)}{2.5} 10^{\frac{-m}{2.5}} \Big)^{2}}
+\end{equation}
+
+I'd like to issue a word of caution on converting from magnitude units back to flux units. If you convert a magnitude in a particular magnitude system, e.g. Vega, back to flux units, then the flux you've computed is the flux of the object \textit{in the Vega system, not the physical flux of the source}. This first came up for me when using \texttt{sncosmo}, so if you're having some zeropoint troubles with that code and you converted from magnitudes to flux, this is likely the issue. Check out \ref{sec:sncosmo} for the procedure to fix this. 

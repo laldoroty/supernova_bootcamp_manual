@@ -25,6 +25,8 @@ Second, it helps to organize your scripts/plan in advance. Do whatever you want,
 
 \subsubsection{CTIO/DECam}
 \par
+You should always know what the local time is. For CTIO, the time is the same as the \href{https://time.is/Santiago}{time in Santiago, Chile}. \\
+
 In general, in this section, usernames/passwords/addresses will be obscured or not provided. You should get these from support. First, make sure you have installed:
 \begin{itemize}
     \item A VPN client
@@ -44,7 +46,7 @@ The first thing you need to open in your computer is your VPN. You need to do th
 
 Open up your VNC viewer. Enter the address and password. RealVNC will save this information for next time. The VNC viewer allows you to remotely use a computer at CTIO. \\
 
-I think it's also nice to open the \href{http://www.ctio.noao.edu/noao/content/ctio-external-webcam}{CTIO external webcams}. It's the only view of the sky at CTIO you'll get all night. Plus, it's a quick way to check the weather.\\
+I think it's also nice to open the \href{http://www.ctio.noao.edu/noao/content/ctio-external-webcam}{CTIO external webcams}. It's the only view of the sky at CTIO you'll get all night. Plus, it's a quick way to check the weather. A slightly less quick, but more quantitative way to check the weather is to use the \href{https://noirlab.edu/science/observing-noirlab/weather-webcams/cerro-tololo/environmental-conditions}{CTIO Site Environmental Conditions page}.\\
 \par
 Now, open the \href{http://system1.ctio.noao.edu:7001/apps/}{SISPI GUIs}. You'll see a bunch of options, like in Figure \ref{fig:sispi}. If you're not on the VPN, you won't be able to access this page. Open one of apps in a new tab and enter the username and password provided by support. If it's not working and you've copied and pasted the login info in to the text boxes, try typing it in by hand. This has been an issue for me in the past, I'm unsure if it's inherent to the software, or if it's a browser issue, or something else. \\ 
 
@@ -84,7 +86,70 @@ You'll want to keep track of the Alarm History GUI as well; if there's a warning
 
 % SISPI GUIs that are important: Comfort display (observer should ideally look at ALL exposures that are taken here, plus some on the VNC viewer for e.g. image saturation during bright time), alarm history (you need to know of all warnings and alarms and investigate what's causeing them), guider (so you can see if there are guiding issues e.g. in crowded fields, and keep an eye on ellipticity)
 
-Let's talk about the center offset correction. In the VNC viewer, if a terminal is not already open, open a terminal. Type \texttt{observer}, hit enter, then \texttt{center}, then hit enter. This will print the center offset for the previous image. If it's large, kindly ask your support staff in the Zoom call for a pointing correction. Listen to their instructions about hitting ``Stop'' and ``Go'' in the exposure queue (the correction can't be made in the middle of an exposure---you need to interrupt the exposure loop). I usually ask for a correction around a 10'' offset. If you're near the end of observing an object, don't worry about it, wait until the telescope slews to see if it corrects itself. If not, go ahead and ask. If you SSH'd in your local terminal, you can do all this there, as well. \\
+Let's talk about the center offset correction. In the VNC viewer, if a terminal is not already open, open a terminal. Type \texttt{observer}, hit enter, then \texttt{center}, then hit enter. This will print the center offset for the previous image. If it's large, kindly ask your support staff in the Zoom call for a pointing correction. Listen to their instructions about hitting ``Stop'' and ``Go'' in the exposure queue (the correction can't be made in the middle of an exposure---you need to interrupt the exposure loop). I usually ask for a correction around a 10'' offset. If you're near the end of observing an object, don't worry about it, wait until the telescope slews to see if it corrects itself. If not, go ahead and ask.\\
+
+Now that I've said all that, I'll go over using the terminal in the VNC viewer. You'll use a package called Kentools, which you enter in the terminal by typing ``observer''. Exit by typing ``exit''. Like this: 
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]{c}
+
+    # Open Kentools:
+    observer2> observer
+    # Close Kentools:
+    prompt> exit
+\end{minted}
+
+That's it! It'll pull up a long list of commands, which I will not copy and paste here. To check centering and seeing, do this: 
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]{c}
+
+    # Open Kentools:
+    observer2> observer
+    # List commands:
+    prompt> commands
+    # Check centering for previous image:
+    prompt> center
+    # Check seeing for the previous image:
+    prompt> seeingall
+\end{minted}
+
+You can open the images you're taking and look at them in DS9! This is also how you check counts. 
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]{c}
+
+    # From Kentools, check image inventory
+    prompt> inv
+    # Load the S4 CCD for the previous image (default). 
+    prompt> load
+\end{minted}
+
+DS9 will pop up with the image. You can check the background counts by hovering your mouse over any location in the image and reading what's in the ``value'' box underneath the ``File'' and ``Object'' information fields.  Here's another example:
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]{c}
+
+    # From Kentools, check image inventory
+    prompt> inv
+    # I picked exposure number 1156247, and load the N5 CCD. 
+    prompt> load 1156247 36
+\end{minted}
+
+\begin{figure}[h!]
+    \centering\includegraphics[width=0.8\textwidth]{figs/observing/DECamOrientation.png}
+    \caption{Alphanumeric codes for each DECam CCD.}
+    \label{fig:decamccds}
+\end{figure}
+
+You can get the exposure number from several places. You can type ``inv'' in Kentools to get an inventory of the exposures from that night. The first column is the exposure number. You can also get the most recent exposure number from the dialogue box in the exposure console, or the upper left-hand corner of the comfort display GUI. You can get the CCD code from Figure~\ref{fig:decamccds}. The N5 CCD has a green 36 written next to it, so I type ``36'' to specify that I want to look at that particular CCD. You can also look at the ENTIRE frame with ``bigload''. Same deal as ``load'', but you don't need to specify the CCD because it loads all the CCDs: \texttt{bigload [expnum]}. \\
 
 At the \href{http://www.ctio.noao.edu/noao/content/End-Night-2}{end of the night}, you need to fill out the \href{http://www.ctio.noao.edu/noao/node/add/night-report}{end-of-night report}. If you observed during the first half of the night, you need to create it. If you observed during the second half, you will get the link from the first half observer (unless they didn't start it. Then you need to make it). Get the login credentials from support. It is very important to ask the telescope operator who needs to be reported in the night log! Don't be afraid to ask.\\
 

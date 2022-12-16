@@ -86,10 +86,9 @@ In general, when minimizing $\chi^{2}$ to fit a model,
 \end{equation}
 where $X_{i}$ is the data, $\mu_{i}$ is the model, and $\sigma_{i}$ is the error for the data. $k$ is the number of data points. \\
 
-Now, use Python to minimize this function. You can use any minimization algorithm you want. Personally, I like least squares. You can use \href{https://github.com/cosmonaut/pycmpfit}{\texttt{pycmpfit}} or \href{https://github.com/segasai/astrolibpy/blob/master/mpfit/mpfit.py}{\texttt{mpfit}}. Both will work, but \href{https://github.com/cosmonaut/pycmpfit}{\texttt{pycmpfit}} is installable via pip. If you want to use \href{https://github.com/segasai/astrolibpy/blob/master/mpfit/mpfit.py}{\texttt{mpfit}}, you can do something like I did \href{https://github.com/laldoroty/LaurensTools/tree/main/LaurensTools/mpfit}{here} (and you can \texttt{git clone} and then \texttt{pip install -e .} the entire \href{https://github.com/laldoroty/LaurensTools}{\texttt{LaurensTools}} package, if you want).
+Now, use Python to minimize this function. You can use any minimization algorithm you want. Personally, I like least squares. You can use \href{https://github.com/cosmonaut/pycmpfit}{\texttt{pycmpfit}} or \href{https://github.com/segasai/astrolibpy/blob/master/mpfit/mpfit.py}{\texttt{mpfit}} (see Section \ref{sec:mpfit}). Both will work, but \href{https://github.com/cosmonaut/pycmpfit}{\texttt{pycmpfit}} is installable via pip. If you want to use \href{https://github.com/segasai/astrolibpy/blob/master/mpfit/mpfit.py}{\texttt{mpfit}}, you can do something like I did \href{https://github.com/laldoroty/LaurensTools/tree/main/LaurensTools/mpfit}{here}, which is copied in to Section \ref{sec:mpfit} (and you can \texttt{git clone} and then \texttt{pip install -e .} the entire \href{https://github.com/laldoroty/LaurensTools}{\texttt{LaurensTools}} package, if you want).
 
 \subsubsection{Example: Fitting a line}
-
 We have a model that we want to fit to our data,
 \begin{equation}
     y(x) = mx + b,
@@ -104,6 +103,12 @@ where $X_{i}$ is the $i$th data point, corresponding to independent variable $x_
     \chi^{2} = \sum_{i=0}^{k} (X_{i} - (mx_{i} + b))^{2},
 \end{equation}
 
+If we want to consider error in both $x$ and $y$:
+\begin{equation}
+    \chi^{2} = \sum_{i=0}^{k} \frac{(X_{i} - (mx_{i} + b))^{2}}{\sigma_{y}^{2} + m^{2}\sigma_{x}^{2}}
+\end{equation}
+
+
 \subsubsection{Example: Fitting a Hubble diagram}
 
 Let's say we want to use the following model for predicting distance using SNe Ia \cite{tripp1998}:
@@ -111,3 +116,12 @@ Let's say we want to use the following model for predicting distance using SNe I
 \begin{equation}
     \mu = m_{B} - M - \alpha(C - C_{avg})- \delta(\Delta m_{15} - \Delta m_{15, avg})
 \end{equation}
+
+The, the $\chi^{2}$ to minimize is
+\begin{equation}
+\begin{split}
+    \chi^{2} = \sum_{i} \frac{(\mu_{i} - (m_{Bmax, i} - M -
+    \alpha(C_{i}- C_{avg}) - \delta(\Delta m_{15, i} - \Delta m_{15,avg})))^{2}}{\sigma_{vpec, i}^{2} + \sigma_{Bmax, i}^{2} + (\alpha \sigma_{C, i})^{2} + (\delta \sigma_{\Delta m_{15}, i})^{2}}
+    \end{split}
+\end{equation}
+$i$ represents each SN in the sample, and $\sigma_{vpec}$ is error in peculiar velocity, with $v_{pec} = 300 \mathrm{\,\,km\,\, s}^{-1}$.
