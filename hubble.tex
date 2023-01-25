@@ -2,13 +2,26 @@
 
 \subsection{What the heck is a rest frame?}
 
-Let's say you have some data, but it's from a supernova with $z = 0.1$. Because of the relativistic Doppler effect, the wavelengths you \textit{observe} are different from the ``actual'' wavelengths, i.e., rest frame wavelengths. This will also affect observed flux. Ignoring ejecta velocity (see Section \ref{sec:ejectavelocity}), this is why a spectral line won't appear in its ``expected'', or rest frame, position. Usually, you want to put your spectra in the rest frame before doing anything with them because it's hard to compare SNe at different redshifts. See Section~\ref{sec:spec_restframe} for details on correcting SN spectra to the rest frame. 
+Let's say you have some data, but it's from a supernova with $z = 0.1$. Because of the relativistic Doppler effect, the wavelengths you \textit{observe} are different from the ``actual'' wavelengths, i.e., rest frame wavelengths. It's called \textit{red}shift for a reason---observed wavelengths will be longer, or redder, than the rest frame wavelengths. This effect will also affect observed flux. Your observed flux is smaller than your rest frame flux because longer wavelengths are less energetic than shorter ones. Ignoring ejecta velocity (see Section \ref{sec:ejectavelocity}), this is why a spectral line won't appear in its ``expected'', or rest frame, position. Usually, you want to put your spectra in the rest frame before doing anything with them because it's hard to compare SNe at different redshifts. See Section~\ref{sec:spec_restframe} for details on correcting SN spectra to the rest frame. 
 
 \subsection{$z_{helio}$ and $z_{CMB}$}
 
 You'll encounter two kinds of redshift---heliocentric redshift ($z_{helio}$) and CMB (Cosmic Microwave Background) redshift ($z_{CMB}$). \textit{These are different, and are used for different purposes!} $z_{CMB}$ is the redshift caused by the Universe's expansion \textit{only}, i.e., where the reference frame is the CMB frame. $z_{helio}$ is the redshift with \textit{only} the Earth's rotation and orbit removed. There are still effects from other motion, like Galactic rotation and the Galaxy moving around with respect to other objects, as well as $z_{CMB}$. ``Heliocentric'' $\equiv$ ``Sun at center'', so ``Sun at center'' is the rest frame. It's how things are moving relative to the Milky Way. Note that $z_{helio}$, while often reported as an object's redshift, is \textit{not} the observed redshfit. The observed redshift does not have the Earth's rotation and orbit removed. In other words, $z_{helio}$ contains information about a bunch of things moving relative to each other, including motion relative to the CMB, while $z_{CMB}$ contains information about \textit{only} motion relative to the CMB.
 
 For cosmology, you'll use $z_{CMB}$ (e.e., when making a Hubble diagram or determining other cosmological parameters). If you're dealing with data that you need to correct to the rest frame, you probably want to use $z_{helio}$.
+
+\subsection{Peculiar velocity and the Hubble flow}
+\label{sec:vpec}
+If you're reading this section, you may have heard the term ``smooth Hubble flow'' thrown around a few times. But what \textit{is} this thing?
+
+for one, not all of the components of a galaxy's velocity are moving away in accordance with the Universe's expansion. This is called the \textit{Hubble flow}---if an object is \textit{only} moving due to expansion (mostly), then it's in the Hubble flow. Any velocity deviation from the Hubble flow is called \textit{peculiar velocity}. For example, if a galaxy is under gravitational influence from another galaxy, the components of its motion due to that interaction is part of its peculiar velocity. However, this is hard to quantify, so it's usually assumed that peculiar velocity is around 300 km/s. You'll notice that in plots that show peculiar velocity error, like in the lower panel of Figure \ref{fig:hresid}, the error due to peculiar velocity gets smaller as an object is farther away. 
+
+Peculiar velocity error is calculated as:
+\begin{equation}
+\label{eqn:evpec}
+    \sigma_{v_{pec}} = \Big( \frac{5}{\ln 10} \Big) \Big( \frac{v_{pec}}{cz} \Big)
+\end{equation}
+So, it's a function of $z$! This makes sense---the farther away something is, the faster it's moving in the Hubble flow, so the peculiar velocity is a relatively small portion of its net velocity vector. 
 
 \subsection{How to make a Hubble diagram}
 Firstly, what is a Hubble diagram? It's a plot of recession velocity ($y$-axis) vs. distance ($x$-axis) (Figure \ref{fig:oghubble}). Turns out these things are positively correlated. In plain English, the farther away a galaxy is, the faster it's hurtling away from us (and everything else---the Universe is homogeneous and isotropic). This means the Universe is expanding\footnote{It's expanding at an accelerating rate, but this statement and a very crude Hubble diagram alone do not imply accelerated expansion}!
@@ -33,7 +46,7 @@ Units you may see to represent distance on the $x$-axis include:
 \end{itemize}
 You'll most commonly see the distance modulus. It's the difference between apparent magnitude, $m$, and absolute magnitude, $M$. So, if the difference between these quantities is large, then an object is further away. If the difference is small, it's closer. You can think of $M$ as the intrinsic brightness of an object. $m$ is the brightness that you observe, corrected for effects like dust extinction (and because we're supernova people, also stuff like the luminosity-decline rate relation). 
 
-So, there are many ways you can actually make a Hubble diagram because there are a zillion ways to standardize SNe Ia. Let's discuss using $\chi^{2}$ minimization. 
+So, there are many ways you can actually make a Hubble diagram because there are a zillion ways to standardize SNe Ia. I'll discuss $\chi^{2}$ minimization i Section~\ref{sec:chisq}. 
 
 \subsection{Hubble residual}
 The Hubble residual is the difference between the observed distance modulus of an SN and the expected distance modulus, obtained by fitting a cosmology to the data. This is important because this quantifies the uncertainty in our cosmological parameters. So, a lot of work is centered around minimizing the Hubble residual. 
@@ -45,15 +58,24 @@ The Hubble residual is the difference between the observed distance modulus of a
     \label{fig:hresid}
 \end{figure}
 
-There are some nuances---for one, not all of the components of a galaxy's velocity are moving away in accordance with the Universe's expansion. This is called the \textit{Hubble flow}---if an object is \textit{only} moving due to expansion, then it's in the Hubble flow. Any velocity deviation from the Hubble flow is called \textit{peculiar velocity}. For example, if a galaxy is under gravitational influence from another galaxy, the components of its motion due to that interaction is part of its peculiar velocity. However, this is hard to quantify, so it's usually assumed that peculiar velocity is around 300 km/s. You'll notice that in plots that show peculiar velocity error, like in the lower panel of Figure \ref{fig:hresid}, the error due to peculiar velocity gets smaller as an object is farther away. 
+The curved dotted lines in Figure~\ref{fig:hresid} are estimated error due to peculiar velocity (Section~\ref{sec:vpec}, Equation~\ref{eqn:evpec}), usually assumed to be around 300 km s$^{-1}$. While you'll plot those curved dotted lines as peculiar velocity error alone, you should add the error due to peculiar velocity in quadrature (i.e. sum the errors like $\sigma = \sqrt{a^{2} + b^{2}}$) to the error bars on your data.
 
-Peculiar velocity error is calculated as:
+It's important to correct your $z$ for peculiar velocity---it influences your results \cite{Peterson2022}! You can get your peculiar velocity values using \href{https://github.com/laldoroty/pvhub/tree/make_installable}{this Python package, called \texttt{pvhub}}. The code is originally written by Erik Peterson for \cite{Peterson2022}. This paper has a really good overview of the different components of $z$, so check it out. For the purposes of this section, we care about correcting $z_{CMB}$ for $v_{pec}$. So, I'll parrot what's in that paper for a sentence or two. We go from $v_{pec}$ to $z_{pec}$ like this:
 \begin{equation}
-    \sigma_{v_{pec}} = \Big( \frac{5}{\ln 10} \Big) \Big( \frac{v_{pec}}{cz} \Big)
+    z_{pec} = \frac{v_{pec}}{c},
 \end{equation}
-So, it's a function of $z$! This makes sense---the farther away something is, the faster it's moving in the Hubble flow, so the peculiar velocity is a relatively small portion of its net velocity vector. 
 
-While you'll plot those curved dotted lines as peculiar velocity error alone, you should add the error due to peculiar velocity in quadrature (i.e. sum the errors like $\sigma = \sqrt{a^{2} + b^{2}}$) to the error bars on your data.
+and correct $z_{CMB}$ like this:
+
+\begin{equation}
+\label{eqn:vpeccorrection}
+    z_{cosmo} = \frac{1 + z_{CMB}}{1 + z_{pec}} - 1.
+\end{equation}
+
+\subsubsection{Troubleshooting}
+\textbf{My Hubble residual shows a slight trend}: this could be becuase you need to correct $z_{CMB}$ for the effects of peculiar velocity. See Equation~\ref{eqn:vpeccorrection}.\\
+
+\noindent\textbf{My scatter is just... enormous}: if you used least squares minimization, check that (1) you typed your $\chi^{2}$ expression correctly, and (2) that you're inputting the correct arrays (e.g., if you accidentally put in $m_{B}$ where $\sigma_{m_{B}}$ should be). 
 
 \subsection{Important papers for supernova cosmology}
 

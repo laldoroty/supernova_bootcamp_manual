@@ -1,6 +1,35 @@
 \section{Observing}
 Whelp, if you're reading this, I can only assume it's because you're about to irreparably mess up your week by staying up until heinous hours of the morning. Enjoy. 
 
+\subsection{Making your observing plan}
+\subsubsection{Exposure time}
+I guarantee your telescope/instrument has an exposure time/integration time calculator. Go find it. 
+
+\subsubsection{Signal-to-noise ratio}
+The signal-to-noise ratio $(S/N)$ compares your signal to your noise. $(S/N) < 1$ means your noise is the predominant source, and $(S/N) > 1$ means your signal (or, the thing you actually \textit{want} to see in your observations) is the predominant source. It's defined like:
+
+\begin{equation}
+    S/N = \frac{S_{obj}}{S_{noise}}
+\end{equation}
+
+The higher your $(S/N)$, the better the observations. Note that your magnitude error $\sigma_{m}$ scales with $1/(S/N)$, i.e., higher $(S/N)$ means lower magnitude errors. Some key values to remember are: $(S/N) = 10 \implies \sigma_{m} \sim 0.1\times m$ and $(S/N) = 100 \implies \sigma_{m} \sim 0.01 \times m$. So... what does this mean? It means that $(S/N) \sim 10$ is probably the lowest you'll want to go for a given observation. If you need a quick spectrum, it's fine, you can do coarse measurements of large absorption lines here. You will most often encounter $(S/N)$ when you're deciding how long your exposure times need to be. \\
+
+Unless you're building an exposure time calculator, you don't really need all the details on this equation, so I defer those detailed explanations to The Greater Internet$^{(\mathrm{TM})}$ because the point of this manual is to help you actually \textit{use} nebulous (lol) concepts.
+
+% \subsubsection{Effective exposure time $t_{eff}$ (DES/DECam only)}
+% $t_{eff}$ is the amount of time your exposure needs in perfect conditions. In other words,
+% \begin{itemize}
+%     \item Clear sky
+%     \item Dark sky
+%     \item PSF is the expected value
+% \end{itemize}
+
+% In general,
+
+% \begin{equation}
+%     t_{eff} = \frac{1}{\mathrm{FWHM}^{2}}10^{\Big( \frac{-2m_{cloud}}{2.5} - \frac{-m_{sky}}{2.5} \Big)}
+% \end{equation}
+
 \subsection{Observing logs}
 If you're observing, you should keep a log that tracks what you did, when you did it, weather conditions, seeing, etc. If something goes wrong, write it down. This may be important down the line! Nothing is too unimportant to jot down. If you're in doubt, just write it down. 
 
@@ -27,7 +56,9 @@ Second, it helps to organize your scripts/plan in advance. Do whatever you want,
 \par
 You should always know what the local time is. For CTIO, the time is the same as the \href{https://time.is/Santiago}{time in Santiago, Chile}. \\
 
-In general, in this section, usernames/passwords/addresses will be obscured or not provided. You should get these from support. First, make sure you have installed:
+In general, in this section, usernames/passwords/addresses will be obscured or not provided. You should get these from support. If you need your proposal ID, check the \href{https://noirlab.edu/science/observing-noirlab/scheduling/mso-telescopes}{schedule for the 4m telescope at CTIO}. 
+
+First, make sure you have installed:
 \begin{itemize}
     \item A VPN client
     \item A VNC viewer
@@ -153,4 +184,27 @@ You can get the exposure number from several places. You can type ``inv'' in Ken
 
 At the \href{http://www.ctio.noao.edu/noao/content/End-Night-2}{end of the night}, you need to fill out the \href{http://www.ctio.noao.edu/noao/node/add/night-report}{end-of-night report}. If you observed during the first half of the night, you need to create it. If you observed during the second half, you will get the link from the first half observer (unless they didn't start it. Then you need to make it). Get the login credentials from support. It is very important to ask the telescope operator who needs to be reported in the night log! Don't be afraid to ask.\\
 
-% % Antonella comments:
+At the end of the night, grab the inventory file. In the terminal in your VNC viewer (or if you SSH'd in via a terminal on your computer):
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]{c}
+
+    # From Kentools:
+    prompt> godb
+    prompt> invPrint
+    prompt> qcInvPrint
+\end{minted}
+
+Then, on your local computer, i.e., in a terminal \textit{without} the SSH connection, 
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]{c}
+
+    scp DECamObserver@observer2.ctio.noao.edu:/user/DECamObserver/
+        yyymmdd.qcinv .
+\end{minted}
+
+where \texttt{yyymmdd} is year, month, day. Also, don't drop the period at the end of this command! You'll need to put in the SSH password, and then a file called \texttt{yyyymmdd.qcinv} will appear in the folder from where you ran the \texttt{scp} command.

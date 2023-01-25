@@ -10,7 +10,7 @@
 \usepackage{xcolor}
 \usepackage{microtype} % for typographical enhancements
 \usepackage{minted}    % for code listings
-\usepackage{amsmath}   % for equations and mathematics
+\usepackage{amsmath,amssymb}   % for equations and mathematics
 \setminted{style=friendly,fontsize=\small}
 \renewcommand{\listoflistingscaption}{List of Code Listings}
 \usepackage{hyperref}  % for hyperlinks
@@ -22,7 +22,7 @@
 
 % Frontmatter data; appears on title page
 \title{Supernova Bootcamp}
-\version{0.0.0}
+\version{1.0.0}
 \author{Lauren Aldoroty}
 %\softwarelogo{\includegraphics[width=8cm]{logo}}
 
@@ -36,7 +36,9 @@
 
 \section{Introduction}
 
-Compiling all the things I've learned so it's easier for future folks. This manual will attempt to cover more technical, data-analysis driven perspectives on working with SNe, particularly SNe Ia. In the Software section (Section~\ref{sec:software}), at the end of each subsection, I'll list some lesser-known functions and tricks that I've found useful. These will be indicated by section titles \texttt{in font like this}, e.g., \texttt{helio\_to\_cmb()} (Section~\ref{sec:heliotocmb}).
+Compiling all the things I've learned so it's easier for future folks. This manual will attempt to cover more technical, data-analysis driven perspectives on working with SNe, particularly SNe Ia. In the Software section (Section~\ref{sec:software}), at the end of each subsection, I'll list some lesser-known functions and tricks that I've found useful. These will be indicated by section titles \texttt{in font like this}, e.g., \texttt{helio\_to\_cmb()} (Section~\ref{sec:heliotocmb}).\\
+
+This manual is perpetually incomplete. Some sections may be partially written, and some aren't written at all because I've put the header there so I remember to write it in the future. I'm happy to receive comments and suggestions. E-mail me: laurenaldoroty [at] gmail [dot] com. 
 
 \input{reddening.tex}
 \input{hubble.tex}
@@ -45,6 +47,7 @@ Compiling all the things I've learned so it's easier for future folks. This manu
 \input{software.tex}
 \input{statistics.tex}
 \input{observing.tex}
+\input{theory.tex}
 \input{references.tex}
 
 \end{document}

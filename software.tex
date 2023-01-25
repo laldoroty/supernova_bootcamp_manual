@@ -345,3 +345,84 @@ Below, I'll list some of my favorite functions that are not-so-discussed in the 
         m = mpfit(myfunctlin, p0, functkw=fa)
         return m.params, m.covar
 \end{minted}
+
+\section{Packaging your code in Python}
+
+This is possibly the most useful thing that I ever learned to do in graduate school. First of all, I'd like to give props to \href{https://semaphorep.github.io/codeastro/}{Code/Astro} for being an incredible workshop where I learned this. This tutorial will be the barest, most barebones way to package your stuff. This will not cover things like unit tests, licenses, or documents.\\
+
+Let's say we have a file, \texttt{calculate\_magnitudes.py}. It looks like this:
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+    import numpy as np
+
+    def calc_mag(f):
+        return -2.5*np.log10(f)
+\end{minted}
+
+and we want to be able to import it into a different file because it's an enormous collection of functions and you don't want to copy and paste that monster (just use your imagination, okay?). Let's name our package \texttt{magpy}. You will make a folder with the following structure and contents:
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+    > magpy
+        > calculate_mag
+            calculate_magnitudes.py
+            __init__.py
+        README.md
+        requirements.txt
+        setup.py
+\end{minted}
+
+Let's talk about what each of these are, and what goes in each of them. \\
+
+\texttt{> magpy} --- This folder contains everything. It is the highest-level directory in the package.\\
+
+\texttt{> calculate\_mag} --- This folder contains your code. It may also have accompanying data files. \\
+
+\texttt{calculate\_magnitudes.py} --- This is your code. Your functions and tools you want to use exist in here. \\
+
+\texttt{\_\_init\_\_.py} --- This file is run when you first import the package. If you don't want to write a long string of stuff like \\\texttt{from magpy.calculate\_mag.calculate\_magnitudes import calc\_mag}, write the following in this file:
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+    from .calculate_magnitudes import *
+\end{minted}
+
+This line imports everything in \texttt{calculate\_magnitudes.py}. So, you can just write \texttt{import calculate\_mag} and then in your code call \texttt{calc\_mag()} directly. \\
+
+\texttt{README.md} --- This describes the software and provides instructions on how to use it. Maybe it has citations, maybe it has a quick code example, maybe it has your name. \\
+
+\texttt{requirements.txt} --- This lists dependencies for your package. For this example, the only thing in this file is:
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+    numpy
+\end{minted}
+
+\texttt{setup.py} --- You need this to make \texttt{python setup.py install} work! The most basic setup file looks like:
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+    from setuptools import setup, find_packages
+
+    setup(name='magpy',
+        version='v1.0.0',
+        packages=find_packages())
+\end{minted}
+
+Now, you can install your glorious tools using \texttt{pip install -e .} or \texttt{python setup.py install} from your terminal in the \texttt{magpy} directory. Throw it on github so you can brag about it and put it on your CV, too. 
