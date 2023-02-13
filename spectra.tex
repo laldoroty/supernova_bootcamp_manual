@@ -5,12 +5,8 @@ Correcting the observed wavelength for the relativistic Doppler effect is done b
 \begin{equation}
     \lambda_{rest \,\, frame} = \frac{\lambda_{observed}}{1+z_{helio}}.
 \end{equation}
-Correcting the observed flux is similar: 
-\begin{equation}
-    f_{rest \,\, frame} = \frac{f_{observed}}{(1+z_{helio})^{2}}.
-\end{equation}
 
-Why? Because redshift affects wavelength, it also affects frequency, i.e., photon energy. You get a two-fold effect here---one factor of $(1 + z)$ is from the wavelength increasing, and the other is from the intensity decreasing. 
+Correcting the observed flux is more complicated and I've redacted this section for now. If you need to correct flux to the rest frame, see the next section and normalize to a chosen $z$. 
 
 \subsection{Normalizing to a particular $z$}
 Sometimes, you want your spectrum flux as if it were at some redshift $z_{ref}$ that you've chosen. Do not use the rest frame spectrum for this calculation. First thing's first, you need the luminosity distance to your object.
@@ -18,7 +14,8 @@ Sometimes, you want your spectrum flux as if it were at some redshift $z_{ref}$ 
 \begin{equation}
     D_{L} = (1+z_{helio})D_{M},
 \end{equation}
-where $z_{helio}$ is the actual redshift for your object, and $D_{M}$ is the comoving transverse distance. In Python, you can use \texttt{astropy.cosmology}'s function \texttt{comoving\_transverse\_distance}, which takes $z_{CMB}$ as its input (so you'll also need your object's RA and dec), to calculate $D_{M}$. If we assume an FLRW universe, then our cosmological scale factor is $a(t) = 1/(1+z)$. Then,
+
+where $z_{helio}$ is the heliocentric ($\sim$observed) redshift for your object, and $D_{M}$ is the comoving transverse distance. In Python, you can use \texttt{astropy.cosmology}'s function \texttt{comoving\_transverse\_distance}, which takes $z_{CMB}$ as its input (so you'll also need your object's RA and dec), to calculate $D_{M}$. If we assume an FLRW universe, then our cosmological scale factor is $a(t) = 1/(1+z)$. Then,
 \begin{equation}
     \frac{a(t_{ref})}{a(t_{actual})} = \Big( \frac{1 + z_{helio}}{1+z_{ref}} \Big) \Big( \frac{D_{L, actual}}{D_{L, ref}} \Big)^{2}
 \end{equation}
@@ -26,6 +23,11 @@ where $z_{helio}$ is the actual redshift for your object, and $D_{M}$ is the com
 Finally, convert your flux by using this value:
 \begin{equation}
     F_{ref} = F_{actual}\Big( \frac{1 + z_{helio}}{1+z_{ref}} \Big) \Big( \frac{D_{L, actual}}{D_{L, ref}} \Big)^{2} = F_{actual} \Big(\frac{a(t_{ref})}{a(t_{actual})} \Big)
+\end{equation}
+
+Using Equation~\ref{eqn:errorprop}, the error is:
+\begin{equation}
+    \sigma_{F_{ref}} = \sigma_{F_{actual}}\frac{\partial F_{ref}}{\partial F_{actual}} = \sigma_{F_{actual}}\Big( \frac{1 + z_{helio}}{1+z_{ref}} \Big) \Big( \frac{D_{L, actual}}{D_{L, ref}} \Big)^{2}
 \end{equation}
 
 \subsection{Absorption lines}
@@ -69,30 +71,32 @@ If you're here, you're wondering how to make photometry from some spectra. In sh
 
 The area under the spectrum, $F$, in a given filter $X$, is calculated by
 \begin{equation}
-    F_{X} = \int_{\lambda_{1}}^{\lambda_{2}} \lambda f(\lambda) R_{X}(\lambda) d\lambda,
+    F_{X} = \frac{1}{hc}\int_{\lambda_{1}}^{\lambda_{2}} \lambda f(\lambda) R_{X}(\lambda) d\lambda,
 \label{eqn:synthint}
 \end{equation}
 
-where $f(\lambda)$ is your spectrum, and $R_{X}(\lambda)$ is your filter. The $\lambda$ term is in there if we're using photon-counting detectors. If you're using an energy-counting detector, you would drop this, i.e., your integrand is $f(\lambda) R_{X}(\lambda) d\lambda$.
+where $f(\lambda)$ is your spectrum, and $R_{X}(\lambda)$ is your filter. The $\lambda$ and $1/hc$ terms are in there if we're using photon-counting detectors, and using an input spectrum that's in energy units. If you're using an energy-counting detector, you would drop this, i.e., your integrand is $f(\lambda) R_{X}(\lambda) d\lambda$.
 
 However, we can't often use the continuous version of this function with our data. So, we discretize it:
 
 \begin{equation}
-    F_{X} = \sum_{i=\lambda_{1}}^{\lambda_{2}} \lambda_{i} f(\lambda_{i}) R_{X}(\lambda_{i})(\lambda_{i} - \lambda_{i-1}),
+    F_{X} = \frac{1}{hc}\sum_{i=\lambda_{1}}^{\lambda_{2}} \lambda_{i} f(\lambda_{i}) R_{X}(\lambda_{i})(\lambda_{i} - \lambda_{i-1}),
 \label{eqn:synth_discrete}
 \end{equation}
 
 where $f(\lambda_{i})$ is the energy flux at a particular wavelength $\lambda_{i}$, and $R_{X}(\lambda_{i})$ is the response function for the filter at wavelength $\lambda_{i}$. We're using a discretized version of an integral, so $(\lambda_{i} - \lambda_{i-1})$ is the same as $d\lambda$. From now on, this chapter will be written as if we are using Equation \ref{eqn:synth_discrete}.
 
-Then, for a photon-counting detector, the variance of $F$ (using Equation \ref{eqn:errorprop}) is:
+Then, for a photon-counting detector with an input spectrum in units of energy, the variance of $F$ (using Equation \ref{eqn:errorprop}) is:
 
 \begin{equation}
-    \sigma_{F}^{2} = \sum_{i=\lambda_{1}}^{\lambda_{2}} \lambda_{i}^{2}\sigma_{f(\lambda_{i})}^{2} R_{X}(\lambda_{i})^{2}(\lambda_{i} - \lambda_{i-1})^{2}
+\label{eqn:varphot}
+    \sigma_{F}^{2} = \Big( \frac{1}{hc}\sum_{i=\lambda_{1}}^{\lambda_{2}} \lambda_{i}\sigma_{f(\lambda_{i})} R_{X}(\lambda_{i})(\lambda_{i} - \lambda_{i-1}) \Big)^{2}
 \end{equation}
 
-For an energy-counting detector, the variance of $F$ is:
+For an energy-counting detector with an input spectrum in units of energy, the variance of $F$ is:
 \begin{equation}
-    \sigma_{F}^{2} = \sum_{i=\lambda_{1}}^{\lambda_{2}} \sigma_{f(\lambda_{i})}^{2} R_{X}(\lambda_{i})^{2}(\lambda_{i} - \lambda_{i-1})^{2}
+\label{eqn:varenergy}
+    \sigma_{F}^{2} = \Big( \sum_{i=\lambda_{1}}^{\lambda_{2}} \sigma_{f(\lambda_{i})} R_{X}(\lambda_{i})(\lambda_{i} - \lambda_{i-1}) \Big)^{2}
 \end{equation}
 
 Individual magnitudes are calculated by
@@ -109,12 +113,18 @@ So anyway, the variance of $m$ (for an energy-counting detector) is:
     \label{eqn:m_err}
 \end{equation}
 
-Note that the summation term on the right-hand side of the equation is the same as $\sigma_{F}^{2}$. 
+Note that the summation term on the right-hand side of the equation is the same as $\sigma_{F}^{2}$. You need to be careful about flux variance here, though: Equations~\ref{eqn:synth_discrete},   \ref{eqn:varphot}, and \ref{eqn:varenergy} are true, but when you are calculating magnitudes, keep in mind that you're calculating this based off a relative flux. So, your flux variance should also be relative. In other words, it should be the variance of $F/F_{ref}$. Using Equation~\ref{eqn:errorprop}, we get
+
+\begin{equation}
+    \sigma^{2}_{F/F_{ref}} = \frac{1}{F_{ref}}\Big( \sum_{i=\lambda_{1}}^{\lambda_{2}} \lambda_{i}\sigma_{f(\lambda_{i})} R_{X}(\lambda_{i})(\lambda_{i} - \lambda_{i-1}) \Big)^{2}
+\end{equation}
+
+(or the equivalent energy-counting version of this). Note that we do not account for error on $F_{ref}$, here. That's why we just use $\sigma_{f(\lambda_{i})}$, which is the error of your data spectrum. \\
 
 If you're looking for \textit{colors}, I've got your back there, too. For arbitrary color $X-Y$,
 \begin{equation}
-    m_{X} - m_{Y} = -2.5\log \Big( \frac{F_{X}}{F_{ref,X}} \Big) + 2.5\log \Big( \frac{F_{Y}}{F_{ref,Y}} \Big)
-\end{equation}.
+    m_{X} - m_{Y} = -2.5\log \Big( \frac{F_{X}}{F_{ref,X}} \Big) + 2.5\log \Big( \frac{F_{Y}}{F_{ref,Y}} \Big).
+\end{equation}
 We can propagate the error here, too. If you want, you can assume $X$ and $Y$ are independent, and do $\sigma_{X-Y} = \sqrt{\sigma_{X}^{2} + \sigma_{Y}^{2}}$. However, we can be more rigorous and not assume independence. We're going to use $\sigma^{2} = \mathbf{JCJ^{T}}$---the explanation of this formula is beyond the scope of this manual. $\mathbf{J}$ is the Jacobian of your spectrum (remember, your spectrum is a function!), and $\mathbf{C}$ is its covariance matrix. The following method will work \textit{if you have an error for the flux in your data spectrum}.
 
 For ease of calculations, we will treat $m_{X}-m_{Y}$ as a function of $f(\lambda_{i})$ (our supernova spectrum, in discrete wavelength chunks). Then, for arbitrary color $X-Y$, the Jacobian is:
@@ -152,11 +162,17 @@ Now, we use $\sigma^{2} = \mathbf{JCJ^{T}}$, and boom, we have color error witho
 Your response function will likely be normalized, but may be given in either normalized flux units or normalized photon counts. You need to know which units you have. If you need the other, don't fret---you can convert it to the other unit system. Let's say you have a response function in normalized photon units, but your spectrum is in energy flux units (ergs/cm$^{2}$/s/$\mathrm{\AA}$). It's best to convert the spectrum to photons. For each $i$th wavelength, you do:
 
 \begin{equation}
-    f_{\gamma}(\lambda_{i}) = f_{E}(\lambda_{i})\frac{\lambda_{i}}{hc},
+    f_{\gamma}(\lambda_{i}) = \frac{\lambda_{i}}{hc}f_{E}(\lambda_{i}),
 \end{equation}
 where $h \approx 6.626 \times 10^{-27}$ ergs $\cdot$ s and $c \approx 3\times 10^{18}$ is the speed of light in $\mathrm{\AA}$/s. 
 
-Why convert the spectrum instead of the response function? Well, CCDs count photons, so it's ideal to do as much as possible in these units. 
+Why convert the spectrum instead of the response function? Well, CCDs count photons, so it's ideal to do as much as possible in these units. \\
+
+Don't forget to convert your errors, as well. Using Equation~\ref{eqn:errorprop},
+
+\begin{equation}
+    \sigma_{f_{\gamma}(\lambda_{i})} = \frac{\lambda_{i}}{hc}\sigma_{f_{E}(\lambda_{i})}.
+\end{equation}
 
 \subsubsection{Help! My results are unreasonable!}
 
@@ -166,6 +182,7 @@ Did you check all of the following:
     \item When you converted between ergs and photons, did you use the correct units for the constants? Remember, for ergs/cm$^{2}$/s/$\mathrm{\AA}$, use $h \approx 6.626 \times 10^{-27}$ ergs $\cdot$ s and $c \approx 3\times 10^{18}$ $\mathrm{\AA}$/s. 
     \item When you converted between ergs and photons, did you multiply by the conversion factor when you should have divided (or vice versa)? 
     \item Does the wavelength range of your filter fall completely inside the wavelength range of your spectrum? 
+    \item Did you convert units when maybe you shouldn't have because you already did it? 
 \end{itemize}
 
 \subsection{Step-by-step Explain Like I'm 5}
