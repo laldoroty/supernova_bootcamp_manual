@@ -35,4 +35,22 @@ where $R_{V}$ is a constant called the ``total-to-selective extinction ratio''. 
 \end{figure}
 
 \subsection{Correcting for Dust}
-\subsubsection{Lira Law}
+
+There are a few packages you can use to quickly un-dust your data. First, \href{https://dust-extinction.readthedocs.io/en/stable/}{\texttt{dust\_extinction}} has a bunch of dust extinction curves and allows you to redden or deredden the spectrum by multiplying or dividing by the dust model's \texttt{extinguish} attribute, respectively. It also takes care of units for you, so you'll need \href{https://docs.astropy.org/en/stable/units/index.html}{\texttt{astropy}'s \texttt{units} module}. You have to provide it with $E(B-V)$ or $A_{V}$ as well. I like to get that with the SNooPy \texttt{get\_dust\_RADEC()} function, which retrieves the Milky Way $E(B-V)$ from \href{https://irsa.ipac.caltech.edu/frontpage/}{IRSA} based on RA and Dec (Section~\ref{sec:snpydustfuncs}). Here's some pseudocode showing how I deredden the flux for a spectrum:
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+
+    from astropy import units as u
+    from dust_extinction.parameter_averages import F04
+    from snpy.utils.IRSA_dust_getval import get_dust_RADEC
+
+    dustmodel = F04(Rv=3.1)
+    mwreddening = get_dust_RADEC(ra, dec, calibration='SF11')[0][0]
+    dereddened_flux = ((flux*u.erg/(u.s*u.AA*u.cm**2))/
+        dustmodel.extinguish(wave*u.AA, Ebv=mwreddening)).value
+    
+\end{minted}

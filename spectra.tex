@@ -90,13 +90,13 @@ Then, for a photon-counting detector with an input spectrum in units of energy, 
 
 \begin{equation}
 \label{eqn:varphot}
-    \sigma_{F}^{2} = \Big( \frac{1}{hc}\sum_{i=\lambda_{1}}^{\lambda_{2}} \lambda_{i}\sigma_{f(\lambda_{i})} R_{X}(\lambda_{i})(\lambda_{i} - \lambda_{i-1}) \Big)^{2}
+    \sigma_{F}^{2} = \frac{1}{(hc)^{2}}\sum_{i=\lambda_{1}}^{\lambda_{2}} \lambda_{i}^{2}\sigma_{f(\lambda_{i})}^{2} R_{X}(\lambda_{i})^{2}(\lambda_{i} - \lambda_{i-1})^{2} 
 \end{equation}
 
 For an energy-counting detector with an input spectrum in units of energy, the variance of $F$ is:
 \begin{equation}
 \label{eqn:varenergy}
-    \sigma_{F}^{2} = \Big( \sum_{i=\lambda_{1}}^{\lambda_{2}} \sigma_{f(\lambda_{i})} R_{X}(\lambda_{i})(\lambda_{i} - \lambda_{i-1}) \Big)^{2}
+    \sigma_{F}^{2} = \sum_{i=\lambda_{1}}^{\lambda_{2}} \sigma_{f(\lambda_{i})}^{2} R_{X}(\lambda_{i})^{2}(\lambda_{i} - \lambda_{i-1})^{2} 
 \end{equation}
 
 Individual magnitudes are calculated by
@@ -113,10 +113,10 @@ So anyway, the variance of $m$ (for an energy-counting detector) is:
     \label{eqn:m_err}
 \end{equation}
 
-Note that the summation term on the right-hand side of the equation is the same as $\sigma_{F}^{2}$. You need to be careful about flux variance here, though: Equations~\ref{eqn:synth_discrete},   \ref{eqn:varphot}, and \ref{eqn:varenergy} are true, but when you are calculating magnitudes, keep in mind that you're calculating this based off a relative flux. So, your flux variance should also be relative. In other words, it should be the variance of $F/F_{ref}$. Using Equation~\ref{eqn:errorprop}, we get
+Note that the summation term on the right-hand side of the equation is the same as $\sigma_{F}^{2}$. You need to be careful about flux variance here, though: Equations~\ref{eqn:synth_discrete},   \ref{eqn:varphot}, and \ref{eqn:varenergy} are true, but when you are calculating magnitudes, keep in mind that you're calculating this based off a relative flux. So, your flux variance should also be relative. In other words, it should be the variance of $F/F_{ref}$. Using Equation~\ref{eqn:errorprop} and treating $F_{ref}$ as a constant, we get
 
 \begin{equation}
-    \sigma^{2}_{F/F_{ref}} = \frac{1}{F_{ref}}\Big( \sum_{i=\lambda_{1}}^{\lambda_{2}} \lambda_{i}\sigma_{f(\lambda_{i})} R_{X}(\lambda_{i})(\lambda_{i} - \lambda_{i-1}) \Big)^{2}
+    \sigma^{2}_{F/F_{ref}} = \frac{1}{F_{ref}^{2}}\sum_{i=\lambda_{1}}^{\lambda_{2}} \lambda_{i}\sigma_{f(\lambda_{i})}^{2} R_{X}(\lambda_{i})^{2}(\lambda_{i} - \lambda_{i-1})^{2} 
 \end{equation}
 
 (or the equivalent energy-counting version of this). Note that we do not account for error on $F_{ref}$, here. That's why we just use $\sigma_{f(\lambda_{i})}$, which is the error of your data spectrum. \\
@@ -185,4 +185,5 @@ Did you check all of the following:
     \item Did you convert units when maybe you shouldn't have because you already did it? 
 \end{itemize}
 
-\subsection{Step-by-step Explain Like I'm 5}
+\section{Classifying spectra}
+You can use \href{https://people.lam.fr/blondin.stephane/software/snid/}{SNID} or the in-browser option \href{https://gelato.tng.iac.es/gelato/}{GELATO}. Tutorials forthcoming. 

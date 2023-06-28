@@ -23,6 +23,20 @@ Peculiar velocity error is calculated as:
 \end{equation}
 So, it's a function of $z$! This makes sense---the farther away something is, the faster it's moving in the Hubble flow, so the peculiar velocity is a relatively small portion of its net velocity vector. 
 
+\subsubsection{Correcting for peculiar velocity}
+\label{sec:pvcorrections}
+It's important to correct your $z$ for peculiar velocity---it influences your results \cite{Peterson2022}! You can get your peculiar velocity values using \href{https://github.com/laldoroty/pvhub/tree/make_installable}{this Python package, called \texttt{pvhub}}. The code is originally written by Erik Peterson for \cite{Peterson2022}, but I modified it so it is an installable Python package. This paper has a really good overview of the different components of $z$, so check it out. For the purposes of this section, we care about correcting $z_{CMB}$ for $v_{pec}$. So, I'll parrot what's in that paper for a sentence or two. We go from $v_{pec}$ to $z_{pec}$ like this:
+\begin{equation}
+    z_{pec} = \frac{v_{pec}}{c},
+\end{equation}
+
+and correct $z_{CMB}$ like this:
+
+\begin{equation}
+\label{eqn:vpeccorrection}
+    z_{cosmo} = \frac{1 + z_{CMB}}{1 + z_{pec}} - 1.
+\end{equation}
+
 \subsection{How to make a Hubble diagram}
 Firstly, what is a Hubble diagram? It's a plot of recession velocity ($y$-axis) vs. distance ($x$-axis) (Figure \ref{fig:oghubble}). Turns out these things are positively correlated. In plain English, the farther away a galaxy is, the faster it's hurtling away from us (and everything else---the Universe is homogeneous and isotropic). This means the Universe is expanding\footnote{It's expanding at an accelerating rate, but this statement and a very crude Hubble diagram alone do not imply accelerated expansion}!
 
@@ -58,19 +72,7 @@ The Hubble residual is the difference between the observed distance modulus of a
     \label{fig:hresid}
 \end{figure}
 
-The curved dotted lines in Figure~\ref{fig:hresid} are estimated error due to peculiar velocity (Section~\ref{sec:vpec}, Equation~\ref{eqn:evpec}), usually assumed to be around 300 km s$^{-1}$. While you'll plot those curved dotted lines as peculiar velocity error alone, you should add the error due to peculiar velocity in quadrature (i.e. sum the errors like $\sigma = \sqrt{a^{2} + b^{2}}$) to the error bars on your data.
-
-It's important to correct your $z$ for peculiar velocity---it influences your results \cite{Peterson2022}! You can get your peculiar velocity values using \href{https://github.com/laldoroty/pvhub/tree/make_installable}{this Python package, called \texttt{pvhub}}. The code is originally written by Erik Peterson for \cite{Peterson2022}. This paper has a really good overview of the different components of $z$, so check it out. For the purposes of this section, we care about correcting $z_{CMB}$ for $v_{pec}$. So, I'll parrot what's in that paper for a sentence or two. We go from $v_{pec}$ to $z_{pec}$ like this:
-\begin{equation}
-    z_{pec} = \frac{v_{pec}}{c},
-\end{equation}
-
-and correct $z_{CMB}$ like this:
-
-\begin{equation}
-\label{eqn:vpeccorrection}
-    z_{cosmo} = \frac{1 + z_{CMB}}{1 + z_{pec}} - 1.
-\end{equation}
+The curved dotted lines in Figure~\ref{fig:hresid} are estimated error due to peculiar velocity (Section~\ref{sec:vpec}, Equation~\ref{eqn:evpec}), usually assumed to be around 300 km s$^{-1}$. While you'll plot those curved dotted lines as peculiar velocity error alone, you should add the error due to peculiar velocity in quadrature (i.e. sum the errors like $\sigma = \sqrt{a^{2} + b^{2}}$) to the error bars on your data. 
 
 \subsubsection{Troubleshooting}
 \textbf{My Hubble residual shows a slight trend}: this could be becuase you need to correct $z_{CMB}$ for the effects of peculiar velocity. See Equation~\ref{eqn:vpeccorrection}.\\

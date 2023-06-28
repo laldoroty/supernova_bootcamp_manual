@@ -232,6 +232,7 @@ Here's some Python code to help you out with this fix:
 Below, I'll list some of my favorite functions that are not-so-discussed in the \href{https://csp.obs.carnegiescience.edu/data/snpy/documentation}{documentation}. 
 
 \subsubsection{\texttt{get\_dust\_RADEC()} and \texttt{get\_dust\_sigma\_RADEC()}}
+\label{sec:snpydustfuncs}
 
 \par
 \texttt{get\_dust\_RADEC()} and \texttt{get\_dust\_sigma\_RADEC()} query \href{https://irsa.ipac.caltech.edu/frontpage/}{IRSA} using a given RA and dec to get the Milky Way $E(B-V)$ and error in $E(B-V)$, respectively. These are located in \texttt{snpy.utils.IRSA\_dust\_getval}. They accept arguments for RA and dec, with the default dust map from \cite{sf11dust}. They return two things: the result and a flag. The flag indicates that the function worked. You can throw this out. \\
