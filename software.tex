@@ -1,10 +1,88 @@
 \section{Software and Models}
 \label{sec:software}
+
+\subsection{git and GitHub}
+\subsubsection{Connecting an existing local directory to a new GitHub repository}
+We're a little bit outside the scope of this manual by including this, but I find online guides to using git very confusing... so here we go. Let's say you have a new directory that you want to put on GitHub. From your terminal, \texttt{cd} into that directory, and do the following commands:
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+
+    git init
+    git add .
+    git commit -m 'Initial commit'
+
+\end{minted}
+This initializes a git repository in the directory, marks all files in the directory for tracking, and records the changes to the git repository locally. Now, check the branch you're on with \texttt{git status}. If this returns ``On branch master'', change your primary branch name from ``master'' to ``main'' by typing \texttt{git branch -m master main}. \\
+
+Now we're going to create a GitHub repository and connect the local git repository to the GitHub repository. So, go to GitHub and create a new repository. I like to name it the same thing as the directory on my local hard drive. Then, after you create the GitHub repository, you should see a place where you can copy its SSH key. Then, go back to your terminal and type \texttt{git remote add origin [SSH key that you just copied]}. Then you'll be able to \texttt{git push --set-upstream origin main} everything to GitHub. If you get an error that says ``git@github.com: Permission denied (publickey).", follow the instructions \href{https://docs.github.com/en/authentication/troubleshooting-ssh/error-permission-denied-publickey}{here}. 
+
+\subsubsection{Connecting an existing GitHub repository to a new local directory}
+
+\subsubsection{I want to remove files from my repo but they're stuck}
+You have to untrack them as well as remove them from the entire commit history. This will do it, and will not delete your files locally, but I hold no responsibility if something else weird happens: 
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+
+    git filter-branch --tree-filter 'rm -f myfile.fits' HEAD
+
+\end{minted}
+
+Note you can only do this if your commits are up-to-date.
+
+\subsubsection{I want to make a new branch without any parent commits, or I tried using git filter-branch and it won't let me, or everything is really messed up and I'm desperate}
+
+You are probably here because you can't remove some large file from your git history no matter what you do. To get out of this mess, you can make a blank branch with no parent commits and copy your stuff from your previous working branch over to it. 
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+
+    # Make a new branch. The --orphan tag is key, here. 
+    git checkout --orphan newbranch
+
+    git commit -m 'I fixed my working tree issues, hooray'
+    git push --set-upstream origin newbranch
+
+\end{minted}
+
+However, now there is a problem with GitHub not wanting to make a pull request to merge the branches because the branches don't share a commit history at all, even though they have a lot of the same content. So, you can give it the history from a different older branch, like \texttt{main}, as long as that branch didn't have a messed up commit history like \texttt{oldbranch} did. 
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+
+    # To update newbranch so it has history from main:
+    git checkout main
+    git pull
+    git checkout main
+    git merge --allow-unrelated-histories -s ours main
+    git push
+
+    # If you also want to update main to contain the stuff
+    # on newbranch:
+    git checkout main
+    git merge newbranch
+    git push
+
+\end{minted}
+
+Now, \texttt{main} and \texttt{newbranch} are identical and \texttt{newbranch} can be deleted.
+
 \subsection{SALT}
 \subsubsection{What is SALT?}
 
 
-\subsubsection{Models}
+\subsubsection{Model history and publications}
 \textit{SALT: a spectral adaptive light curve template for type Ia supernovae}, J. Guy et al. 2005 \cite{salt}. This is the first SALT model. The model is trained on 34 SNe with $z < 0.1$ in $UBVRI$ filters. \\
 
 \textit{SALT2: using distant supernovae to improve the use of type Ia supernovae as distance indicators}, J. Guy et al. 2007 \cite{salt2}. SALT is retrained on data with $z \leq 1$. \\

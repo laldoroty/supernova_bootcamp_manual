@@ -79,6 +79,53 @@ The curved dotted lines in Figure~\ref{fig:hresid} are estimated error due to pe
 
 \noindent\textbf{My scatter is just... enormous}: if you used least squares minimization, check that (1) you typed your $\chi^{2}$ expression correctly, and (2) that you're inputting the correct arrays (e.g., if you accidentally put in $m_{B}$ where $\sigma_{m_{B}}$ should be). 
 
+\subsection{Going from supernova distances to $w$}
+Let's say we've already got our SNe Ia standardized (this is a different can of worms), and our brightnesses are converted to distance moduli, $\mu_{obs}$. How do we get distances from that? First, let's define $\Delta\mu = \mu_{obs}-\mu_{theory}$. We don't know what $\mu_{theory}$ is. Also, note that $\Delta\mu$ is a vector with the same number of entries as however many SNe you have, or however many redshift bins you've put your data into. We minimize the following $\chi^{2}$ \cite{conley2011}:
+
+\begin{equation}
+    \chi^{2} = \Delta\mu_{i}^{T} C_{ij}^{-1} \Delta\mu_{j}
+\end{equation}
+
+where $C_{ij}$ is a square covariance matrix associated with $\Delta\mu$, defined as the sum of the covariance matrices for statistical and systematic uncertainties \cite{brout2019}:
+
+\begin{equation}
+    C_{ij} = C_{stat} + C_{sys} =  \sum_{k=1}^{N_{sys}} (\Delta\mu_{ik,obs}) (\Delta\mu_{jk,obs}) W_{k}^{2}
+\end{equation}
+
+The diagonal elements of $C_{ij}$ are the statistical uncertainty associated with standardization, and $W_{k}$ is a scale factor for the size of the $k$th systematic uncertainty. (Note to self: How do we get $W_{k}$?)
+
+Now that our $\chi^{2}$ is minimized, we have the fit values of $\mu_{theory}$. Then, we use this to work backwards into the luminosity distance $D_{L}$, which contains all kinds of cosmological information inside it if you unpeel a few layers and assume the Universe is flat:
+
+\begin{equation}
+    \mu_{theory} = 5\log(D_{L}(z)) + 25,
+\end{equation}
+
+and
+
+\begin{equation}
+    D_{L}(z) =  D_{C}(z)(1+z),
+\end{equation}
+
+where $D_{C}$ is the comoving distance, which is:
+
+\begin{equation}
+    D_{C}(z) = \frac{c}{H_{0}} \int_{0}^{z} \frac{dz}{E(z)}
+\end{equation}
+
+...and there's another unknown. What's $E(z)$? Skipping a ton of gymnastics with the Friedmann equations,
+
+\begin{equation}
+    E(z) = \sqrt{\Omega_{m}(1+z)^{2} + \Omega_{k}(1+z)^{2} + \Omega_{\Lambda}(1+z)^{3(1+w)}}
+\end{equation}
+
+Finally, the first appearance of $w$! Putting it all together,
+
+\begin{equation}
+    \mu_{theory} = 5\log\Bigg(\frac{c(1+z)}{H_{0}} \int_{0}^{z} \frac{dz}{\sqrt{\Omega_{m}(1+z)^{2} + \Omega_{k}(1+z)^{2} + \Omega_{\Lambda}(1+z)^{3(1+w)}}}\Bigg) + 25
+\end{equation}
+
+Choose values for $H_{0}$ and the $\Omega$s\footnote{$H_{0}$ and the Omegas sounds like a band name. Dibs.}, use computer to fit for $w$. 
+
 \subsection{Important papers for supernova cosmology}
 
 \textit{The Use of Supernovae Light Curves for Testing the Expansion Hypothesis and Other Cosmological Relations}, B. Rust's PhD thesis, 1974 \cite{Rust1974}. The author shows that SNe Ia can be used to test the expanding Universe hypothesis.\\
@@ -91,4 +138,6 @@ The curved dotted lines in Figure~\ref{fig:hresid} are estimated error due to pe
 
 \noindent\textit{The Reddening-Free Decline Rate Versus Luminosity Relationship for Type IA Supernovae}, M. Phillips et al. 1999. \cite{Phillips1999}. This paper elaborates on Phillips 1993 \cite{Phillips1993}. It modifies the previously-described luminosity-decline relation by correcting for host galaxy extinction using the relation in Lira 1995.\\
 
-\noindent\textit{Observational Evidence from Supernovae for an Accelerating Universe and a Cosmological Constant}, Riess et al. 1998 \cite{Riess1998}. This is the paper that won the Nobel Prize in 2011, awarded to Adam Riess, Saul Perlmutter, and Brian Schmidt. The authors used High-$z$ Supernova Search Team data combined with some nearby SNe to show that the distances of the high $z$ SNe were larger than expected, implying that the Universe is expanding at an accelerating rate. The Supernova Cosmology Project group found the same results at around the same time.\\
+\noindent\textit{Observational Evidence from Supernovae for an Accelerating Universe and a Cosmological Constant}, A. Riess et al. 1998 \cite{Riess1998}. This is the paper that won the Nobel Prize in 2011, awarded to Adam Riess, Saul Perlmutter, and Brian Schmidt. The authors used High-$z$ Supernova Search Team data combined with some nearby SNe to show that the distances of the high $z$ SNe were larger than expected, implying that the Universe is expanding at an accelerating rate. The Supernova Cosmology Project group found the same results at around the same time.\\
+
+\noindent\textit{The Dark Energy Survey Supernova Program: Cosmological Analysis and Systematic Uncertainties}, M. Vincenzi et al. 2024 \cite{vincenzi2024}.

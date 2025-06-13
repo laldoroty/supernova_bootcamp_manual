@@ -1,0 +1,73 @@
+\section{Working with Files}
+\subsection{Rotating an image and updating the fits header manually}
+
+In your headers, there's something called the \textit{``CD matrix''}, which describes both the rotation and pixel scale of your image. You may have \texttt{CDELT1} and \texttt{CDELT2} (pixel scale, x and y axis, respectively), as well as \texttt{CROTA2} or \texttt{ORIENTAT} (rotation angle), instead. There is no \texttt{CROTA1}. I didn't make the rules, okay? The relationship between these values is:
+\begin{equation}
+    \begin{bmatrix}
+    \texttt{CD1\_1} & \texttt{CD1\_2} \\
+    \texttt{CD2\_1} & \texttt{CD2\_2}
+    \end{bmatrix}
+    = 
+    \begin{bmatrix}
+    \texttt{CDELT1}\cos{(\texttt{CROTA2})} & -\texttt{CDELT2}\sin{(\texttt{CROTA2})} \\
+    \texttt{CDELT1}\sin{(\texttt{CROTA2})} & \texttt{CDELT2}\cos{(\texttt{CROTA2})}
+    \end{bmatrix}
+\end{equation}
+
+You may recognize this as being very similar to a rotation matrix... that's because it is! \\
+
+If you already have your matrix in terms of \texttt{CD1\_1} etc. instead of \texttt{CDELT} and \texttt{CROTA}, then you can ignore the above. \\
+
+First, figure out what angle you want to rotate your image through. You can pick the angle in the \texttt{ORIENTAT/CROTA2} keyword to rotate it back to 0 degrees. Then, build your rotation matrix. You'll use this for updating the image header. To rotate the image,  you will use \texttt{scipy.ndimage.rotate}.
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+
+    import numpy as np
+    from scipy.ndimage import rotate
+    from astropy.io import fits
+
+    hdu = fits.open('/path/to/data.fits')
+    header = hdu[0].header
+    img = hdu[1].data
+    
+    CDmat = np.array([header['CD1_1'], header['CD1_2'],
+                      header['CD2_1'], header['CD2_2']]).reshape(2,2)
+    orientation = header['ORIENTAT']
+    
+    # Multiply by np.pi/180 if your orientation is in degrees 
+    # instead of radians because the numpy functions want radians.
+    CD1_1_rot = np.cos(-orientation*np.pi/180)
+    CD1_2_rot = -np.sin(-orientation*np.pi/180)
+    CD2_1_rot = np.sin(-orientation*np.pi/180)
+    CD2_2_rot = np.cos(-orientation*np.pi/180)
+
+    RotMat = np.array([CD1_1_rot, CD1_2_rot,
+                      CD2_1_rot, CD2_2_rot]).reshape(2,2)
+
+    RotMat_inv = np.array([CD1_1_rot, -CD1_2_rot,
+                              -CD2_1_rot, CD2_2_rot]).reshape(2,2)
+
+    # Apply rotation to the CDi_j header keywords.
+    CDmat_rot = np.dot(CDmat,RotMat_inv)
+
+    # Update header.
+    header['CD1_1'], header['CD1_2'] = CDmat_rot[0]
+    header['CD2_1'], header['CD2_2'] = CDmat_rot[1]
+    header['ORIENTAT'] -= orientation
+
+    # Rotate the image data. 
+    # reshape=False is VERY important. If it is set to true, the 
+    # dimensions of the array will change to accommodate the entire
+    # rotated image. You'll have issues with the center value 
+    # (CRVAL) and axis size (NAXIS) keywords. 
+    rot_img = rotate(img, angle=orientation, reshape=False, 
+        cval=np.nan)
+
+    hdu[1].data = rot_img
+
+    rot_wcs = WCS(header)
+\end{minted}

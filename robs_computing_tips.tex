@@ -1,0 +1,51 @@
+\section{Rob's Computing Tipz}
+
+In this section, I'm just a ghostwriter for Rob Knop. 
+
+\subsection{emacs}
+To get a GUI window in NERSC/Perlmutter that connects to your system clipboard:
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {bash}
+
+    ssh -X <username>@saul.nersc.gov
+    emacs &
+
+\end{minted}
+
+\subsection{\texttt{pdb} with \texttt{multiprocessing}}
+
+\begin{itemize}
+    \item \texttt{pip install remote-pdb}
+    \item Make sure system has \texttt{socat} and \texttt{rlwrap}
+    \item Add the breakpoint where you want it in the code:
+\end{itemize}
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {python}
+    
+    import remote_pdb;
+    remote_pdb.RemotePdb('127.0.0.1', 4444).set_trace()
+
+\end{minted}
+
+Run the code. Wait for the logs to tell you that you've reached the breakpoint. If you have multiple processes that hit this at the same time, they will yell at you about all trying to open the same port. You can play games like trying to open different ports in each process, or you can try to set it up so that there's only one subprocess running. In another shell, when you see in the logs you've reached the breakpoint:
+
+\begin{minted}[
+    bgcolor=lightgray,
+    frame=leftline,
+    framesep=-3mm]
+    {bash}
+
+    rlwrap -H ./socat.history socat - tcp:127.0.0.1:4444
+
+\end{minted}
+
+Note that this will create a file \texttt{socat.history} in your local directory.  Make sure not to accidentally git add that, as it's gratuitous.
+
+On a cluster, make sure you are on the same node in your two terminals. 
